@@ -1,0 +1,12 @@
+{
+	"autoload": {
+		"psr-4": {
+			"ADCmdr\\": "includes/"
+		}
+	},
+	"extra": {
+		"imposter": {
+			"namespace": "ADCmdr\\Vendor"
+		}
+	}
+}

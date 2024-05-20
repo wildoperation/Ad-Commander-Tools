@@ -1,0 +1,11 @@
+/.wordpress-org export-ignore
+/.git export-ignore
+/.github export-ignore
+/node_modules export-ignore
+
+.gitignore export-ignore
+.editorconfig export-ignore
+.gitattributes export-ignore
+.DS_Store export-ignore
+.browserslistrc export-ignore
+*.zip export-ignore
