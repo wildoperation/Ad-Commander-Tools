@@ -1,0 +1,77 @@
+$wp-border-color: #c3c4c7;
+$gutter-width: 1.5rem;
+$gutter-width-half: $gutter-width / 2;
+$speed: 250ms;
+$ease: ease-in-out;
+
+$wp-red: #d63638;
+$wp-yellow: #dba617;
+$wp-blue: #2271b1;
+$wp-blue-hover: #135e96;
+
+$primary: #2d5a5d;
+$secondary: #190933;
+$secondary-dark: darken(#190933, 5%);
+$success: #172d2f; // green darker
+$info: #fdce69;
+$warning: #f4743b;
+$danger: #a4303f;
+
+.adcmdrdt-export-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: inline-block;
+
+	li {
+		margin: 0 0 $gutter-width-half;
+		padding: 0 0 $gutter-width-half;
+		list-style: none;
+		border-bottom: 1px solid $wp-border-color;
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		justify-content: space-between;
+		gap: $gutter-width-half;
+		width: 100%;
+
+		&:last-child {
+			border-bottom: none;
+			margin-bottom: 0;
+			padding-bottom: 0;
+		}
+	}
+
+	a {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		align-items: center;
+		gap: 4px;
+
+		text-decoration: none;
+
+		&:hover {
+			span {
+				text-decoration: underline;
+			}
+		}
+	}
+
+	.dashicons {
+		font-size: 1rem;
+		width: 1rem;
+		height: 1rem;
+	}
+
+	.adcmdrdt-del {
+		cursor: pointer;
+		outline: none;
+		border: none;
+		box-shadow: none;
+		padding: 0;
+		background: none;
+		vertical-align: middle;
+		color: $wp-red;
+	}
+}

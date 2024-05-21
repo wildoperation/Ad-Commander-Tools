@@ -1,0 +1,553 @@
+<?php
+namespace ADCmdr;
+
+use ADCmdr\Vendor\WOAdminFramework\WOMeta;
+
+/**
+ * Export functionality
+ */
+class Export extends AdminDt {
+
+	/**
+	 * An instance of this class.
+	 *
+	 * @var Export|null
+	 */
+	private static $instance = null;
+
+	/**
+	 * Instance of WOMeta
+	 *
+	 * @var WOMeta
+	 */
+	private $wo_meta;
+
+	/**
+	 * Export suffix
+	 *
+	 * @var string
+	 */
+	private $export_suffix;
+
+	/**
+	 * Create an instance of self if necessary and return it.
+	 *
+	 * @return Export
+	 */
+	public static function instance() {
+		if ( self::$instance === null ) {
+			self::$instance = new self();
+		}
+
+		return self::$instance;
+	}
+
+	/**
+	 * Hooks
+	 */
+	public function hooks() {
+		add_action( 'admin_action_adcmdr-do_export', array( $this, 'do_export' ) );
+		add_action( 'admin_action_adcmdr-export_success', array( $this, 'export_success' ) );
+	}
+
+	/**
+	 * Determine if we are capable of export.
+	 *
+	 * @return bool
+	 */
+	public static function can_export() {
+		return class_exists( 'ZipArchive' ) && class_exists( 'DateTime' );
+	}
+
+	/**
+	 * Create a suffix if one does not exist.
+	 */
+	private function export_suffix() {
+		if ( ! $this->export_suffix ) {
+			$dt = Util::datetime_wp_timezone( 'now' );
+
+			$this->export_suffix = '_' . $dt->format( 'YmdHis' ) . '_' . preg_replace( '/[^a-z0-9]/i', '', strtolower( wp_generate_password( 5, false ) ) );
+		}
+
+		return $this->export_suffix;
+	}
+
+
+	/**
+	 * Add admin notice on export success.
+	 *
+	 * TODO: This is not being called.
+	 */
+	public static function export_success() {
+		wo_log( 'export success' );
+		add_action(
+			'admin_notices',
+			function () {
+				?>
+			<div class="notice notice-success">
+				<p>
+					<?php esc_html_e( 'Your export was completed successfully. You can download your bundle below.', 'ad-commander' ); ?>
+				</p>
+			</div>
+				<?php
+			}
+		);
+	}
+
+	/**
+	 * Get a list of bundles in the export directory.
+	 *
+	 * @return array
+	 */
+	public function get_filelist( $filters = array( '.zip', 'bundle_' ) ) {
+		$bundles = array();
+
+		if ( ! $this->init_wp_filesystem() ) {
+			return false;
+		}
+
+		global $wp_filesystem;
+
+		$filelist = $wp_filesystem->dirlist( self::export_dir(), false );
+		if ( is_array( $filelist ) ) {
+			$bundles = array_filter(
+				$filelist,
+				function ( $file ) use ( $filters ) {
+					if ( $file['type'] !== 'f' ) {
+						return false;
+					}
+
+					foreach ( $filters as $filter ) {
+						if ( stripos( $file['name'], $filter ) === false ) {
+							return false;
+						}
+					}
+
+					return true;
+				}
+			);
+
+			usort(
+				$bundles,
+				function ( $a, $b ) {
+					return isset( $a['lastmodunix'] ) && isset( $b['lastmodunix'] ) ? $b['lastmodunix'] <=> $a['lastmodunix'] : 0;
+				}
+			);
+		}
+
+		$this->end_wp_filesystem();
+
+		return $bundles;
+	}
+
+	/**
+	 * Perform an export.
+	 *
+	 * @return void
+	 */
+	public function do_export() {
+		$export_nonce = $this->nonce_array( 'adcmdr-do_export', 'export' );
+
+		if ( ! isset( $_REQUEST['action'] ) ||
+			! check_admin_referer( $export_nonce['action'], $export_nonce['name'] ) ||
+			! current_user_can( AdCommander::capability() ) ) {
+			wp_die();
+		}
+
+		if ( sanitize_text_field( wp_unslash( $_REQUEST['action'] ) ) !== Util::ns( 'do_export' ) ) {
+			wp_die();
+		}
+
+		$this->wo_meta = new WOMeta( AdCommander::ns() );
+
+		$ads        = $this->process_ads();
+		$groups     = $this->process_groups();
+		$placements = $this->process_placements();
+		// TODO: Export statistics.
+
+		$this->create_bundle(
+			array(
+				'adcmdr_ads'        => $ads,
+				'adcmdr_groups'     => $groups,
+				'adcmdr_placements' => $placements,
+			)
+		);
+
+		$url = admin_url( self::admin_path( 'tools' ) );
+		$url = add_query_arg(
+			array(
+				'action'              => Util::ns( 'export_success' ),
+				$export_nonce['name'] => wp_create_nonce( $export_nonce['action'] ),
+			),
+			$url
+		);
+
+		wp_safe_redirect( sanitize_url( $url ) );
+		exit;
+	}
+
+	/**
+	 * Delete a bundle file.
+	 *
+	 * @param string $file The filename to delete.
+	 *
+	 * @return bool
+	 */
+	public function delete_bundle( $file ) {
+		if ( ! $file ) {
+			return false;
+		}
+
+		$dir = self::export_dir();
+
+		if ( file_exists( $dir . $file ) ) {
+			wp_delete_file( $dir . $file );
+		}
+
+		return true;
+	}
+
+	/**
+	 * Create a bundle from arrays.
+	 *
+	 * @param array $bundle Bundle of data.
+	 *
+	 * @return bool|void
+	 */
+	private function create_bundle( $bundle ) {
+
+		if ( empty( $bundle ) ) {
+			return false;
+		}
+
+		$dir = $this->maybe_create_dir( self::export_dir() );
+
+		if ( ! $dir ) {
+			return false;
+		}
+
+		$csvs = array();
+
+		foreach ( $bundle as $file => $data ) {
+			$filename  = sanitize_title( $file . $this->export_suffix() ) . '.csv';
+			$full_path = $dir . $filename;
+
+			$fd = fopen( $full_path, 'w' );
+			if ( $fd ) {
+				$headings = $data['headings'];
+				fputcsv( $fd, $headings );
+
+				foreach ( $data['rows'] as $row ) {
+					$this_row = array();
+					foreach ( $headings as $heading ) {
+						if ( isset( $row[ $heading ] ) ) {
+							$this_row[] = $row[ $heading ];
+						} else {
+							$this_row[] = '';
+						}
+					}
+
+					fputcsv( $fd, $this_row );
+				}
+
+				fclose( $fd );
+
+				$csvs[] = $full_path;
+			}
+		}
+
+		if ( ! empty( $csvs ) ) {
+			$zip          = new \ZipArchive();
+			$zip_filename = 'bundle' . $this->export_suffix() . '.zip';
+
+			if ( file_exists( $dir . $zip_filename ) ) {
+				wp_delete_file( $dir . $zip_filename );
+			}
+
+			if ( ! $zip->open( $dir . $zip_filename, \ZipArchive::CREATE ) ) {
+				return false;
+			}
+
+			foreach ( $csvs as $csv ) {
+				$zip->addFile( $csv, basename( $csv ) );
+			}
+
+			$zip->close();
+
+			foreach ( $csvs as $csv ) {
+				wp_delete_file( $csv );
+			}
+		}
+	}
+
+	/**
+	 * Query and prepare groups for export.
+	 *
+	 * @return array
+	 */
+	private function process_groups() {
+		$headings         = UtilDt::headings( 'groups' );
+		$processed_groups = array();
+
+		$groups = Query::groups();
+
+		if ( $groups ) {
+			foreach ( $groups as $group ) {
+				$meta = $this->wo_meta->get_term_meta( $group->term_id, GroupTermMeta::tax_group_meta_keys() );
+
+				$this_group = array(
+					'source' => 'adcmdr_export',
+				);
+
+				foreach ( $headings as $heading ) {
+					if ( isset( $this_group[ $heading ] ) ) {
+						continue;
+					}
+
+					$value = '';
+
+					if ( isset( $group->$heading ) ) {
+						$value = $group->$heading;
+					} elseif ( isset( $meta[ $heading ] ) ) {
+						$value = $meta[ $heading ];
+					}
+
+					if ( is_array( $value ) ) {
+						$value = wp_json_encode( $value );
+					}
+
+					$this_group[ $heading ] = $value;
+				}
+
+				$processed_groups[] = $this_group;
+			}
+		}
+
+		return array(
+			'headings' => $headings,
+			'rows'     => $processed_groups,
+		);
+	}
+
+	/**
+	 * Query and prepare ads for export.
+	 *
+	 * @return array
+	 */
+	private function process_ads() {
+		$headings      = UtilDt::headings( 'ads' );
+		$processed_ads = array();
+
+		$ads = Query::ads( 'post_title', 'asc', Util::any_post_status( array( 'trash' ) ) );
+
+		if ( $ads ) {
+			foreach ( $ads as $ad ) {
+				$meta  = $this->wo_meta->get_post_meta( $ad->ID, AdPostMeta::post_meta_keys() );
+				$terms = get_the_terms( $ad->ID, AdCommander::tax_group() );
+				$slugs = array();
+
+				if ( $terms && ! empty( $terms ) ) {
+					$slugs = wp_list_pluck( $terms, 'slug' );
+				}
+
+				$this_ad = array(
+					'source' => 'adcmdr_export',
+					'groups' => wp_json_encode( $slugs ),
+				);
+
+				foreach ( $headings as $heading ) {
+					if ( isset( $this_ad[ $heading ] ) ) {
+						continue;
+					}
+
+					$value = '';
+
+					if ( isset( $ad->$heading ) ) {
+						$value = $ad->$heading;
+					} elseif ( isset( $meta[ $heading ] ) ) {
+						$value = $meta[ $heading ];
+					}
+
+					if ( is_array( $value ) ) {
+						$value = wp_json_encode( $value );
+					}
+
+					$this_ad[ $heading ] = $value;
+				}
+
+				$processed_ads[] = $this_ad;
+			}
+		}
+
+		return array(
+			'headings' => $headings,
+			'rows'     => $processed_ads,
+		);
+	}
+
+	/**
+	 * Query and prepare placements for export.
+	 *
+	 * @return array
+	 */
+	private function process_placements() {
+		$headings             = UtilDt::headings( 'placements' );
+		$processed_placements = array();
+
+		$placements = Query::placements( Util::any_post_status( array( 'trash' ) ) );
+
+		if ( $placements ) {
+			foreach ( $placements as $placement ) {
+				$meta = $this->wo_meta->get_post_meta( $placement->ID, PlacementPostMeta::post_meta_keys() );
+
+				$this_placement = array(
+					'source' => 'adcmdr_export',
+				);
+
+				foreach ( $headings as $heading ) {
+					if ( isset( $this_placement[ $heading ] ) ) {
+						continue;
+					}
+
+					$value = '';
+
+					if ( isset( $placement->$heading ) ) {
+						$value = $placement->$heading;
+					} elseif ( isset( $meta[ $heading ] ) ) {
+						$value = $meta[ $heading ];
+					}
+
+					if ( is_array( $value ) ) {
+						$value = wp_json_encode( $value );
+					}
+
+					$this_placement[ $heading ] = $value;
+				}
+
+				$processed_placements[] = $this_placement;
+			}
+		}
+
+		return array(
+			'headings' => $headings,
+			'rows'     => $processed_placements,
+		);
+	}
+
+	/**
+	 * Get the local path to the export folder.
+	 *
+	 * @return string
+	 */
+	public static function export_path() {
+		return apply_filters( 'adcmdr_export_uploads_path', '/ad-commander/export' );
+	}
+
+	/**
+	 * Get the full URL for the export folder.
+	 *
+	 * @return string
+	 */
+	public static function export_url() {
+		$wp_upload_dir = wp_upload_dir();
+
+		if ( ! isset( $wp_upload_dir['baseurl'] ) ) {
+			return false;
+		}
+
+		return $wp_upload_dir['baseurl'] . trailingslashit( self::export_path() );
+	}
+
+	/**
+	 * Get the full directory for the export folder.
+	 *
+	 * @return string
+	 */
+	public static function export_dir() {
+		$wp_upload_dir = wp_upload_dir();
+
+		if ( ! isset( $wp_upload_dir['basedir'] ) ) {
+			return false;
+		}
+
+		return $wp_upload_dir['basedir'] . trailingslashit( self::export_path() );
+	}
+
+	/**
+	 * Set the WordPress filesystem method.
+	 *
+	 * @return string
+	 */
+	public function filesystem_method() {
+		return 'direct';
+	}
+
+	/**
+	 * Initialize the WordPress filesystem.
+	 *
+	 * @return bool
+	 */
+	private function init_wp_filesystem() {
+		require_once ABSPATH . 'wp-admin/includes/file.php';
+		add_filter( 'filesystem_method', array( $this, 'filesystem_method' ) );
+		WP_Filesystem();
+
+		global $wp_filesystem;
+
+		if ( ! isset( $wp_filesystem->method ) || $wp_filesystem->method !== 'direct' ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Remove the filesystem method filter.
+	 */
+	private function end_wp_filesystem() {
+		remove_filter( 'filesystem_method', array( $this, 'filesystem_method' ) );
+	}
+
+	/**
+	 * Maybe create the MaxMind database directory.
+	 *
+	 * @param string $dir The directory to create.
+	 * @param bool   $create_index Create an index file in the directory.
+	 *
+	 * @return bool|string
+	 */
+	private function maybe_create_dir( $dir, $create_index = true ) {
+
+		/**
+		 * TODO: Consider creating .htaccess deny file
+		 *
+		 * TODO: How does this work with multisite?
+		 */
+
+		if ( ! $this->init_wp_filesystem() ) {
+			return false;
+		}
+
+		global $wp_filesystem;
+
+		$dir = trailingslashit( $dir );
+
+		if ( ! file_exists( $dir ) ) {
+			if ( ! wp_mkdir_p( $dir ) ) {
+				return false;
+			}
+		}
+
+		if ( $create_index && ! file_exists( $dir . 'index.html' ) ) {
+			$wp_filesystem->put_contents(
+				$dir . 'index.html',
+				'',
+				FS_CHMOD_FILE
+			);
+		}
+
+		$this->end_wp_filesystem();
+
+		return $dir;
+	}
+}

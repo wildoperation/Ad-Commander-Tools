@@ -7,10 +7,157 @@ namespace ADCmdr;
 class AdminDt extends Admin {
 
 	/**
+	 * Admin menu hooks specific to this plugin.
+	 *
+	 * @var array
+	 */
+	private $admin_menu_hooks_dt = array();
+
+	/**
+	 * Nonces
+	 *
+	 * @var array
+	 */
+	private $nonce_arrays = array();
+
+	/**
 	 * Hooks
 	 */
 	public function hooks() {
 		add_action( 'admin_menu', array( $this, 'create_admin_menu' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
+		add_action( 'admin_print_styles', array( $this, 'admin_print_styles' ) );
+
+		add_filter( 'adcmdr_admin_menu_hooks', array( $this, 'admin_menu_hooks' ) );
+
+		foreach ( $this->get_action_keys() as $key ) {
+			$key_underscore = self::_key( $key );
+			add_action( 'wp_ajax_' . $this->action_string( $key ), array( $this, 'action_' . $key_underscore ) );
+		}
+	}
+
+	/**
+	 * Create or get nonce
+	 *
+	 * @param string $action The action for the nonce.
+	 * @param string $key The key to create the nonce string from.
+	 */
+	protected function nonce_array( $action, $key ) {
+		if ( ! isset( $this->nonce_arrays[ $action ] ) ) {
+			$this->nonce_arrays[ $action ] = $this->nonce( $action, $key );
+		}
+
+		return $this->nonce_arrays[ $action ];
+	}
+
+	/**
+	 * Enqueue scripts
+	 *
+	 * @return void
+	 */
+	public function admin_enqueue_scripts() {
+		if ( $this->is_screen( $this->admin_menu_hooks_dt ) ) {
+			wp_enqueue_script( 'jquery' );
+
+			$handle = Util::ns( 'dt-export' );
+
+			wp_register_script(
+				$handle,
+				AdCommanderDt::assets_url() . 'js/export.js',
+				array(
+					'jquery',
+				),
+				AdCommanderDt::version(),
+				array( 'in_footer' => true )
+			);
+
+			wp_enqueue_script( $handle );
+
+			Util::enqueue_script_data(
+				$handle,
+				array(
+					'ajaxurl' => admin_url( 'admin-ajax.php' ),
+					'actions' => $this->get_ajax_actions(),
+				)
+			);
+
+		}
+	}
+
+	/**
+	 * Get necessary action keys, which will be used to create wp_ajax hooks.
+	 *
+	 * @return array
+	 */
+	private function get_action_keys() {
+		return array(
+			'delete-bundle',
+		);
+	}
+
+	/**
+	 * Creates an array of all of the necessary actions.
+	 *
+	 * @return array
+	 */
+	private function get_ajax_actions() {
+		$actions = array();
+
+		foreach ( $this->get_action_keys() as $key ) {
+			$actions[ self::_key( $key ) ] = array(
+				'action'   => $this->action_string( $key ),
+				'security' => wp_create_nonce( $this->nonce_string( $key ) ),
+			);
+		}
+
+		return $actions;
+	}
+
+	/**
+	 * Delete a bundle
+	 *
+	 * @return void
+	 */
+	public function action_delete_bundle() {
+		$action = 'delete-bundle';
+
+		check_ajax_referer( $this->nonce_string( $action ), 'security' );
+
+		if ( ! current_user_can( AdCommander::capability() ) ) {
+			wp_die();
+		}
+
+		$file = isset( $_REQUEST['file'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['file'] ) ) : false;
+
+		if ( Export::instance()->delete_bundle( $file ) ) {
+			wp_send_json_success(
+				array(
+					'action' => $action,
+				)
+			);
+		}
+
+		wp_die();
+	}
+
+	/**
+	 * Enqueue styles if we're on a screen that needs them.
+	 *
+	 * @return void
+	 */
+	public function admin_print_styles() {
+		if ( $this->is_screen( $this->admin_menu_hooks_dt ) ) {
+			wp_enqueue_style( Util::ns( 'dt-tools' ), AdCommanderDt::assets_url() . 'css/admin.css', array(), AdCommanderDt::version() );
+		}
+	}
+
+	/**
+	 * The admin_url for the support page.
+	 *
+	 * @return string
+	 */
+	public static function tools_admin_url() {
+		return admin_url( self::admin_path( 'tools' ) );
 	}
 
 	/**
@@ -19,7 +166,7 @@ class AdminDt extends Admin {
 	 * @return string
 	 */
 	public function tools_title() {
-		return __( 'Tools', 'ad-commander-data-tools' );
+		return __( 'Tools', 'ad-commander-tools' );
 	}
 
 	/**
@@ -38,7 +185,23 @@ class AdminDt extends Admin {
 			25
 		);
 
-		$this->admin_menu_hooks[ self::admin_slug( 'tools' ) ] = $hook;
+		$this->admin_menu_hooks_dt[] = $hook;
+	}
+
+	/**
+	 * Filter Ad Commander menu hooks and add this plugin.
+	 *
+	 * @param array $hooks The current hooks.
+	 *
+	 * @return array
+	 */
+	public function admin_menu_hooks( $hooks ) {
+
+		if ( is_array( $hooks ) && ! empty( $this->admin_menu_hooks_dt ) ) {
+			$hooks = array_merge( $hooks, $this->admin_menu_hooks_dt );
+		}
+
+		return $hooks;
 	}
 
 	/**
@@ -47,5 +210,181 @@ class AdminDt extends Admin {
 	 * @return void
 	 */
 	public function tools_page() {
+		$this->sf()->start();
+
+		$tabs                   = array();
+		$tools['import_export'] = __( 'Import/Export', 'ad-commander-tools' );
+		$tools['manage_stats']  = __( 'Manage Stats', 'ad-commander-tools' );
+
+		$admin_url = self::tools_admin_url();
+
+		foreach ( $tools as $key => $text ) {
+			$opt_key = $this->sf()->key( $key );
+			$tabs[]  = array(
+				'key'  => $opt_key,
+				'text' => esc_html( $text ),
+				'url'  => $this->sf()->get_tab_url( $opt_key, $admin_url ),
+			);
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Nonce verification isn't needed for admin page added via add_submenu_page and processing no action.
+		$active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : $tabs[0]['key'];
+		$this->sf()->display_tabs( $tabs, $active_tab );
+
+		foreach ( $tabs as $tab ) {
+			if ( $active_tab !== $tab['key'] ) {
+				continue;
+			}
+
+			switch ( $tab['key'] ) {
+				case 'adcmdr_import_export':
+					$this->import_export_page();
+					break;
+
+				case 'adcmdr_manage_stats':
+					$this->manage_stats_page();
+					break;
+			}
+		}
+		// Close .woforms-form-inner div from display_tabs().
+		?>
+		</div>
+		<?php
+		$this->sf()->end();
+	}
+
+	/**
+	 * Start a form tag.
+	 *
+	 * @return void
+	 */
+	private function form_start() {
+		$this->sf()->form_start( admin_url( 'admin.php' ) );
+	}
+
+	/**
+	 * End a form.
+	 *
+	 * @return void
+	 */
+	private function form_end() {
+		?>
+		</form>
+		<?php
+	}
+
+	/**
+	 * Create the import/export page.
+	 *
+	 * @return void
+	 */
+	private function import_export_page() {
+		$this->export_section();
+		$this->import_section();
+	}
+
+	/**
+	 * Create the export section.
+	 *
+	 * @return void
+	 */
+	private function export_section() {
+		$export_nonce = $this->nonce_array( 'adcmdr-do_export', 'export' );
+		?>
+		<h2><?php esc_html_e( 'Export', 'ad-commander-tools' ); ?></h2>
+		<?php
+		if ( ! Export::can_export() ) {
+			$this->info( esc_html__( "Your host doesn't appear to support PHP's ZipArchive library. We are unable to create export bundles at this time.", 'ad-commander-tools' ), array( 'adcmdr-metaitem__warning' ) );
+		} else {
+			$this->form_start();
+			?>
+		<input type="hidden" name="action" value="<?php echo esc_attr( Util::ns( 'do_export' ) ); ?>" />
+			<?php
+			$this->nonce_field( $export_nonce );
+
+			Html::admin_table_start();
+			?>
+			<?php
+			/*
+			<tr>
+			<th scope="row"><?php esc_html_e( 'Include stats', 'ad-commander-tools' ); ?></th>
+			<td>
+				<?php
+				$id = $this->sf()->key( 'export_include_stats' );
+				$this->sf()->checkbox( $id, 0 );
+				$this->sf()->label( $id, __( 'Include statistics in export bundle.', 'ad-commander-tools' ) );
+				?>
+			</td>
+			</tr>
+			*/
+			?>
+		<tr>
+			<th scope="row"><?php esc_html_e( 'Export bundle', 'ad-commander-tools' ); ?></th>
+			<td>
+				<input type="submit" value="<?php echo esc_attr( __( 'Create export bundle now', 'ad-commander-tools' ) ); ?>" class="button button-secondary adcmdrdt-export-now" /> <span class="adcmdr-loader"></span>
+				<?php $this->sf()->message( esc_html__( 'A bundle will be created with your ads, groups, and placements. When importing this bundle into another site, you can choose which data to import.', 'ad-commander-tools' ) ); ?>
+			</td>
+		</tr>
+			<?php
+			$bundles = Export::instance()->get_filelist();
+			if ( ! empty( $bundles ) ) :
+				$url = Export::instance()->export_url();
+				?>
+		<tr>
+			<th scope="row"><?php esc_html_e( 'Exported files', 'ad-commander-tools' ); ?></th>
+			<td>
+				<ul class="adcmdrdt-export-list">
+				<?php
+				$dt     = Util::datetime_wp_timezone( 'now' );
+				$format = get_option( 'date_format' ) . ' ' . get_option( 'time_format' );
+				foreach ( $bundles as $file ) :
+					?>
+					<?php
+					$created = null;
+
+					if ( isset( $file['lastmodunix'] ) ) {
+						$dt->setTimestamp( $file['lastmodunix'] );
+						$created = $dt->format( $format );
+					}
+					?>
+					<li data-file="<?php echo esc_attr( $file['name'] ); ?>">
+						<a href="<?php echo esc_url( $url . $file['name'] ); ?>" target="_blank" title="<?php echo esc_attr__( 'Download', 'ad-commander-tools' ); ?>">
+							<span><?php echo esc_html( $file['name'] ); ?></span><i class="dashicons dashicons-download"></i>
+						</a>
+						<?php if ( $created ) : ?>
+						<em><?php echo esc_html( $created ); ?></em>
+						<?php endif; ?>
+						<button title="Delete" class="adcmdrdt-del"><i class="dashicons dashicons-remove"></i></button>
+					</li>
+				<?php endforeach; ?>
+				</ul>
+			</td>
+		</tr>
+				<?php
+		endif;
+			Html::admin_table_end();
+
+			$this->form_end();
+		}
+	}
+
+	/**
+	 * Import section.
+	 *
+	 * @return void
+	 */
+	private function import_section() {
+		$import_nonce = $this->nonce_array( 'adcmdr-do_import', 'import' );
+		?>
+		<h2><?php esc_html_e( 'Import', 'ad-commander-tools' ); ?></h2>
+		<?php
+	}
+
+	/**
+	 * Create the manage stats page.
+	 *
+	 * @return void
+	 */
+	private function manage_stats_page() {
 	}
 }

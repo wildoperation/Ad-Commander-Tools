@@ -1,0 +1,51 @@
+.adcmdrdt-export-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: inline-block;
+}
+.adcmdrdt-export-list li {
+  margin: 0 0 0.75rem;
+  padding: 0 0 0.75rem;
+  list-style: none;
+  border-bottom: 1px solid #c3c4c7;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+}
+.adcmdrdt-export-list li:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+.adcmdrdt-export-list a {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+}
+.adcmdrdt-export-list a:hover span {
+  text-decoration: underline;
+}
+.adcmdrdt-export-list .dashicons {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+}
+.adcmdrdt-export-list .adcmdrdt-del {
+  cursor: pointer;
+  outline: none;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  background: none;
+  vertical-align: middle;
+  color: #d63638;
+}
+
+/*# sourceMappingURL=admin.css.map*/

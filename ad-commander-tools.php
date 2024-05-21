@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name:     Ad Commander Data Tools
+ * Plugin Name:     Ad Commander Tools
  * Plugin URI:      https://wpadcommander.com
  * Description:     Import, export, and data management tools for Ad Commander.
  * Version:         1.0.0
@@ -8,7 +8,7 @@
  * Author URI:      https://wildoperation.com
  * License:         GPL-3.0
  * License URI:     http://www.gnu.org/licenses/gpl-3.0.txt
- * Text Domain:     ad-commander-data-tools
+ * Text Domain:     ad-commander-tools
  *
  * @package WordPress
  * @subpackage Import, export, and data management tools for Ad Commander.
@@ -48,7 +48,7 @@ add_action(
 					<p>
 					<?php
 						/* translators: %1$s: anchor tag with URL, %2$s: close anchor tag */
-						printf( esc_html__( 'Ad Commander Data Tools requires the %1$sAd Commander plugin%2$s. Please enable Ad Commander to continue.', 'ad-commander-data-tools' ), '<a href="https://wordpress.org/plugins/ad-commander/" target="_blank">', '</a>' );
+						printf( esc_html__( 'Ad Commander Data Tools requires the %1$sAd Commander plugin%2$s. Please enable Ad Commander to continue.', 'ad-commander-tools' ), '<a href="https://wordpress.org/plugins/ad-commander/" target="_blank">', '</a>' );
 					?>
 					</p>
 				</div>
@@ -64,7 +64,7 @@ add_action(
 						function () {
 							ADCmdr\AdCommanderDt::plugin_list_notice(
 								/* translators: %1$s: anchor tag with URL, %2$s: close anchor tag */
-								sprintf( esc_html__( 'Ad Commander Data Tools requires the %1$sAd Commander plugin%2$s. Please enable Ad Commander to continue.', 'ad-commander-data-tools' ), '<a href="https://wordpress.org/plugins/ad-commander/" target="_blank">', '</a>' )
+								sprintf( esc_html__( 'Ad Commander Data Tools requires the %1$sAd Commander plugin%2$s. Please enable Ad Commander to continue.', 'ad-commander-tools' ), '<a href="https://wordpress.org/plugins/ad-commander/" target="_blank">', '</a>' )
 							);
 						},
 						10,
@@ -91,6 +91,7 @@ add_action(
 		 */
 		$classes = array(
 			'ADCmdr\AdminDt',
+			'ADCmdr\Export',
 		);
 
 		foreach ( $classes as $class ) {
