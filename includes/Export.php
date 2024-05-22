@@ -101,7 +101,7 @@ class Export extends AdminDt {
 	public function get_filelist( $filters = array( '.zip', 'bundle_' ) ) {
 		$bundles = array();
 
-		if ( ! $this->init_wp_filesystem() ) {
+		if ( ! Filesystem::instance()->init_wp_filesystem() ) {
 			return false;
 		}
 
@@ -134,7 +134,7 @@ class Export extends AdminDt {
 			);
 		}
 
-		$this->end_wp_filesystem();
+		Filesystem::instance()->end_wp_filesystem();
 
 		return $bundles;
 	}
@@ -154,7 +154,7 @@ class Export extends AdminDt {
 		}
 
 		if ( sanitize_text_field( wp_unslash( $_REQUEST['action'] ) ) !== Util::ns( 'do_export' ) ) {
-			wp_die();
+			return false;
 		}
 
 		$this->wo_meta = new WOMeta( AdCommander::ns() );
@@ -220,7 +220,7 @@ class Export extends AdminDt {
 			return false;
 		}
 
-		$dir = $this->maybe_create_dir( self::export_dir() );
+		$dir = Filesystem::instance()->maybe_create_dir( self::export_dir() );
 
 		if ( ! $dir ) {
 			return false;
@@ -471,83 +471,5 @@ class Export extends AdminDt {
 		}
 
 		return $wp_upload_dir['basedir'] . trailingslashit( self::export_path() );
-	}
-
-	/**
-	 * Set the WordPress filesystem method.
-	 *
-	 * @return string
-	 */
-	public function filesystem_method() {
-		return 'direct';
-	}
-
-	/**
-	 * Initialize the WordPress filesystem.
-	 *
-	 * @return bool
-	 */
-	private function init_wp_filesystem() {
-		require_once ABSPATH . 'wp-admin/includes/file.php';
-		add_filter( 'filesystem_method', array( $this, 'filesystem_method' ) );
-		WP_Filesystem();
-
-		global $wp_filesystem;
-
-		if ( ! isset( $wp_filesystem->method ) || $wp_filesystem->method !== 'direct' ) {
-			return false;
-		}
-
-		return true;
-	}
-
-	/**
-	 * Remove the filesystem method filter.
-	 */
-	private function end_wp_filesystem() {
-		remove_filter( 'filesystem_method', array( $this, 'filesystem_method' ) );
-	}
-
-	/**
-	 * Maybe create the MaxMind database directory.
-	 *
-	 * @param string $dir The directory to create.
-	 * @param bool   $create_index Create an index file in the directory.
-	 *
-	 * @return bool|string
-	 */
-	private function maybe_create_dir( $dir, $create_index = true ) {
-
-		/**
-		 * TODO: Consider creating .htaccess deny file
-		 *
-		 * TODO: How does this work with multisite?
-		 */
-
-		if ( ! $this->init_wp_filesystem() ) {
-			return false;
-		}
-
-		global $wp_filesystem;
-
-		$dir = trailingslashit( $dir );
-
-		if ( ! file_exists( $dir ) ) {
-			if ( ! wp_mkdir_p( $dir ) ) {
-				return false;
-			}
-		}
-
-		if ( $create_index && ! file_exists( $dir . 'index.html' ) ) {
-			$wp_filesystem->put_contents(
-				$dir . 'index.html',
-				'',
-				FS_CHMOD_FILE
-			);
-		}
-
-		$this->end_wp_filesystem();
-
-		return $dir;
 	}
 }

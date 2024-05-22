@@ -92,6 +92,7 @@ add_action(
 		$classes = array(
 			'ADCmdr\AdminDt',
 			'ADCmdr\Export',
+			'ADCmdr\ImportBundle',
 		);
 
 		foreach ( $classes as $class ) {

@@ -263,8 +263,8 @@ class AdminDt extends Admin {
 	 *
 	 * @return void
 	 */
-	private function form_start() {
-		$this->sf()->form_start( admin_url( 'admin.php' ) );
+	private function form_start( $method = 'post', $formdata = false ) {
+		$this->sf()->form_start( admin_url( 'admin.php' ), $method, $formdata );
 	}
 
 	/**
@@ -316,8 +316,11 @@ class AdminDt extends Admin {
 		<tr>
 			<th scope="row"><?php esc_html_e( 'Export bundle', 'ad-commander-tools' ); ?></th>
 			<td>
-				<input type="submit" value="<?php echo esc_attr( __( 'Create export bundle now', 'ad-commander-tools' ) ); ?>" class="button button-secondary adcmdrdt-submit" /> <span class="adcmdr-loader"></span>
-				<?php $this->sf()->message( esc_html__( 'A bundle will be created with your ads, groups, and placements. When importing this bundle into another site, you can choose which data to import.', 'ad-commander-tools' ) ); ?>
+				<input type="submit" value="<?php echo esc_attr( __( 'Create export bundle now', 'ad-commander-tools' ) ); ?>" class="button button-primary adcmdrdt-submit" /> <span class="adcmdr-loader"></span>
+				<?php
+				/* translators: %1$s: line break tag */
+				$this->sf()->message( sprintf( esc_html__( 'A bundle will be created with your ads, groups, and placements.%1$sWhen importing this bundle into another site, you can choose which data to import.', 'ad-commander-tools' ), '<br />' ) );
+				?>
 			</td>
 		</tr>
 			<?php
@@ -369,13 +372,13 @@ class AdminDt extends Admin {
 	 * @return void
 	 */
 	private function import_page() {
-		$import_bundle_nonce = $this->nonce_array( 'adcmdr-do_import_bndle', 'import' );
+		$import_bundle_nonce = $this->nonce_array( 'adcmdr-do_import_bundle', 'import' );
 		?>
 		<h2><?php esc_html_e( 'Import', 'ad-commander-tools' ); ?></h2>
 		<?php
-			$this->form_start();
+			$this->form_start( 'post', true );
 		?>
-		<input type="hidden" name="action" value="<?php echo esc_attr( Util::ns( 'do_import' ) ); ?>" />
+		<input type="hidden" name="action" value="<?php echo esc_attr( Util::ns( 'do_import_bundle' ) ); ?>" />
 			<?php
 			$this->nonce_field( $import_bundle_nonce );
 
@@ -384,13 +387,15 @@ class AdminDt extends Admin {
 		<tr>
 			<th scope="row"><?php esc_html_e( 'Import bundle', 'ad-commander-tools' ); ?></th>
 			<td>
+				<?php $this->sf()->message( __( "Upload a bundle zip created by Ad Commander's export tool. This zip will be processed and imported based on the options selected below.", 'ad-commander-tools' ) ); ?>
+				<div class="adcmdrdt-sub">
 				<?php
-				$this->sf()->message( __( "Upload a bundle zip created by Ad Commander's export tool. This zip will be processed and imported based on the options selected below.", 'ad-commander-tools' ) );
 				$id = $this->sf()->key( 'import_bundle_file' );
 				$this->sf()->input( $id, null, 'file', array( 'accept' => '.zip' ) );
-				$this->sf()->label( $id, __( 'Choose a bundle file', 'ad-commander-tools' ) );
+				$this->sf()->label( $id, __( 'Select a bundle file to upload.', 'ad-commander-tools' ) );
 				?>
-				<div>
+				</div>
+				<div class="adcmdrdt-sub adcmdrdt-sub--col adcmdrdt-sub--divide">
 				<?php
 				$options = array(
 					'ads'        => __( 'Ads', 'ad-commander-tools' ),
@@ -404,12 +409,28 @@ class AdminDt extends Admin {
 				$this->sf()->checkgroup(
 					$id,
 					$options,
-					array_keys( $options )
-				)
+					array_filter( array_keys( $options ), fn( $option ) => $option !== 'stats' )
+				);
 				?>
 				</div>
-				<div>
-					<input type="submit" value="<?php echo esc_attr( __( 'Upload & Import Bundle', 'ad-commander-tools' ) ); ?>" class="button button-secondary adcmdrdt-submit" /> <span class="adcmdr-loader"></span>
+				<div class="adcmdrdt-sub adcmdrdt-sub--col">
+				<?php
+				$options = array(
+					'draft' => __( 'Draft', 'ad-commander-tools' ),
+					'match' => __( 'Match imported status', 'ad-commander-tools' ),
+				);
+
+				$id = $this->sf()->key( 'import_set_status' );
+				$this->sf()->label( $id, __( 'Set the status of imported Ads and Placements to:', 'ad-commander-tools' ) );
+				$this->sf()->select(
+					$id,
+					$options,
+					'draft'
+				);
+				?>
+				</div>
+				<div class="adcmdrdt-sub adcmdrdt-sub--divide">
+					<input type="submit" value="<?php echo esc_attr( __( 'Upload & Import Bundle', 'ad-commander-tools' ) ); ?>" class="button button-primary adcmdrdt-submit" /> <span class="adcmdr-loader"></span>
 				</div>
 			</td>
 		</tr>
