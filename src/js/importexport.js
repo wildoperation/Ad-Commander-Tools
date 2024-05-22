@@ -1,19 +1,22 @@
 jQuery(document).ready(function ($) {
 	/**
-	 * Primary export button
+	 * All submit buttons
 	 */
-	const $submit = $(".adcmdrdt-export-now");
+	const $submit = $(".adcmdrdt-submit");
 	if ($submit.length > 0) {
 		const $form = $submit.closest("form");
 
 		$form.on("submit", function (e) {
 			$submit.attr("disabled", true);
-			$submit.siblings(".adcmdr-loader").css("display", "inline-block");
+			$(this)
+				.find(".adcmdrdt-submit")
+				.siblings(".adcmdr-loader")
+				.css("display", "inline-block");
 		});
 	}
 
 	/**
-	 * Bundle list
+	 * Exported bundle list
 	 */
 	const $exported_list = $(".adcmdrdt-export-list");
 
@@ -30,12 +33,12 @@ jQuery(document).ready(function ($) {
 			$li.css("opacity", 0.5);
 
 			const data = {
-				action: adcmdr_dt_export.actions.delete_bundle.action,
-				security: adcmdr_dt_export.actions.delete_bundle.security,
+				action: adcmdr_dt_impexp.actions.delete_bundle.action,
+				security: adcmdr_dt_impexp.actions.delete_bundle.security,
 				file: $li.data("file"),
 			};
 
-			$.post(adcmdr_dt_export.ajaxurl, data, function (response) {
+			$.post(adcmdr_dt_impexp.ajaxurl, data, function (response) {
 				if (response.success && response.data.action === "delete-bundle") {
 					$li.remove();
 

@@ -59,11 +59,11 @@ class AdminDt extends Admin {
 		if ( $this->is_screen( $this->admin_menu_hooks_dt ) ) {
 			wp_enqueue_script( 'jquery' );
 
-			$handle = Util::ns( 'dt-export' );
+			$handle = Util::ns( 'dt-impexp' );
 
 			wp_register_script(
 				$handle,
-				AdCommanderDt::assets_url() . 'js/export.js',
+				AdCommanderDt::assets_url() . 'js/importexport.js',
 				array(
 					'jquery',
 				),
@@ -242,7 +242,7 @@ class AdminDt extends Admin {
 					$this->export_page();
 					break;
 
-				case 'adcmdr_export':
+				case 'adcmdr_import':
 					$this->import_page();
 					break;
 
@@ -316,7 +316,7 @@ class AdminDt extends Admin {
 		<tr>
 			<th scope="row"><?php esc_html_e( 'Export bundle', 'ad-commander-tools' ); ?></th>
 			<td>
-				<input type="submit" value="<?php echo esc_attr( __( 'Create export bundle now', 'ad-commander-tools' ) ); ?>" class="button button-secondary adcmdrdt-export-now" /> <span class="adcmdr-loader"></span>
+				<input type="submit" value="<?php echo esc_attr( __( 'Create export bundle now', 'ad-commander-tools' ) ); ?>" class="button button-secondary adcmdrdt-submit" /> <span class="adcmdr-loader"></span>
 				<?php $this->sf()->message( esc_html__( 'A bundle will be created with your ads, groups, and placements. When importing this bundle into another site, you can choose which data to import.', 'ad-commander-tools' ) ); ?>
 			</td>
 		</tr>
@@ -369,10 +369,54 @@ class AdminDt extends Admin {
 	 * @return void
 	 */
 	private function import_page() {
-		$export_nonce = $this->nonce_array( 'adcmdr-do_import', 'import' );
+		$import_bundle_nonce = $this->nonce_array( 'adcmdr-do_import_bndle', 'import' );
 		?>
 		<h2><?php esc_html_e( 'Import', 'ad-commander-tools' ); ?></h2>
 		<?php
+			$this->form_start();
+		?>
+		<input type="hidden" name="action" value="<?php echo esc_attr( Util::ns( 'do_import' ) ); ?>" />
+			<?php
+			$this->nonce_field( $import_bundle_nonce );
+
+			Html::admin_table_start();
+			?>
+		<tr>
+			<th scope="row"><?php esc_html_e( 'Import bundle', 'ad-commander-tools' ); ?></th>
+			<td>
+				<?php
+				$this->sf()->message( __( "Upload a bundle zip created by Ad Commander's export tool. This zip will be processed and imported based on the options selected below.", 'ad-commander-tools' ) );
+				$id = $this->sf()->key( 'import_bundle_file' );
+				$this->sf()->input( $id, null, 'file', array( 'accept' => '.zip' ) );
+				$this->sf()->label( $id, __( 'Choose a bundle file', 'ad-commander-tools' ) );
+				?>
+				<div>
+				<?php
+				$options = array(
+					'ads'        => __( 'Ads', 'ad-commander-tools' ),
+					'groups'     => __( 'Groups', 'ad-commander-tools' ),
+					'placements' => __( 'Placements', 'ad-commander-tools' ),
+					'stats'      => __( 'Stats', 'ad-commander-tools' ),
+				);
+
+				$id = $this->sf()->key( 'import_bundle_options' );
+				$this->sf()->label( $id, __( 'Import the following data (if present in the bundle file):', 'ad-commander-tools' ) );
+				$this->sf()->checkgroup(
+					$id,
+					$options,
+					array_keys( $options )
+				)
+				?>
+				</div>
+				<div>
+					<input type="submit" value="<?php echo esc_attr( __( 'Upload & Import Bundle', 'ad-commander-tools' ) ); ?>" class="button button-secondary adcmdrdt-submit" /> <span class="adcmdr-loader"></span>
+				</div>
+			</td>
+		</tr>
+		<?php
+		Html::admin_table_end();
+
+		$this->form_end();
 	}
 
 	/**

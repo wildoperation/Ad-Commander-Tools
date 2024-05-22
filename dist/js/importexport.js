@@ -1,27 +1,27 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./src/js/export.js":
-/*!**************************!*\
-  !*** ./src/js/export.js ***!
-  \**************************/
+/***/ "./src/js/importexport.js":
+/*!********************************!*\
+  !*** ./src/js/importexport.js ***!
+  \********************************/
 /***/ (() => {
 
 jQuery(document).ready(function ($) {
   /**
-   * Primary export button
+   * All submit buttons
    */
-  var $submit = $(".adcmdrdt-export-now");
+  var $submit = $(".adcmdrdt-submit");
   if ($submit.length > 0) {
     var $form = $submit.closest("form");
     $form.on("submit", function (e) {
       $submit.attr("disabled", true);
-      $submit.siblings(".adcmdr-loader").css("display", "inline-block");
+      $(this).find(".adcmdrdt-submit").siblings(".adcmdr-loader").css("display", "inline-block");
     });
   }
 
   /**
-   * Bundle list
+   * Exported bundle list
    */
   var $exported_list = $(".adcmdrdt-export-list");
   if ($exported_list.length > 0) {
@@ -33,11 +33,11 @@ jQuery(document).ready(function ($) {
       $this.attr("disabled", true);
       $li.css("opacity", 0.5);
       var data = {
-        action: adcmdr_dt_export.actions.delete_bundle.action,
-        security: adcmdr_dt_export.actions.delete_bundle.security,
+        action: adcmdr_dt_impexp.actions.delete_bundle.action,
+        security: adcmdr_dt_impexp.actions.delete_bundle.security,
         file: $li.data("file")
       };
-      $.post(adcmdr_dt_export.ajaxurl, data, function (response) {
+      $.post(adcmdr_dt_impexp.ajaxurl, data, function (response) {
         if (response.success && response.data.action === "delete-bundle") {
           $li.remove();
           if ($exported_list.find("li").length <= 0) {
@@ -150,7 +150,7 @@ __webpack_require__.r(__webpack_exports__);
 /******/ 		// undefined = chunk not loaded, null = chunk preloaded/prefetched
 /******/ 		// [resolve, reject, Promise] = chunk loading, 0 = chunk loaded
 /******/ 		var installedChunks = {
-/******/ 			"/dist/js/export": 0,
+/******/ 			"/dist/js/importexport": 0,
 /******/ 			"dist/css/admin": 0
 /******/ 		};
 /******/ 		
@@ -201,10 +201,10 @@ __webpack_require__.r(__webpack_exports__);
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module depends on other loaded chunks and execution need to be delayed
-/******/ 	__webpack_require__.O(undefined, ["dist/css/admin"], () => (__webpack_require__("./src/js/export.js")))
+/******/ 	__webpack_require__.O(undefined, ["dist/css/admin"], () => (__webpack_require__("./src/js/importexport.js")))
 /******/ 	var __webpack_exports__ = __webpack_require__.O(undefined, ["dist/css/admin"], () => (__webpack_require__("./src/scss/admin.scss")))
 /******/ 	__webpack_exports__ = __webpack_require__.O(__webpack_exports__);
 /******/ 	
 /******/ })()
 ;
-//# sourceMappingURL=export.js.map
+//# sourceMappingURL=importexport.js.map
