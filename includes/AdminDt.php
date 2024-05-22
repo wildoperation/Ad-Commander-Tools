@@ -212,9 +212,10 @@ class AdminDt extends Admin {
 	public function tools_page() {
 		$this->sf()->start();
 
-		$tabs                   = array();
-		$tools['import_export'] = __( 'Import/Export', 'ad-commander-tools' );
-		$tools['manage_stats']  = __( 'Manage Stats', 'ad-commander-tools' );
+		$tabs                  = array();
+		$tools['import']       = __( 'Import', 'ad-commander-tools' );
+		$tools['export']       = __( 'Export', 'ad-commander-tools' );
+		$tools['manage_stats'] = __( 'Manage Stats', 'ad-commander-tools' );
 
 		$admin_url = self::tools_admin_url();
 
@@ -237,8 +238,12 @@ class AdminDt extends Admin {
 			}
 
 			switch ( $tab['key'] ) {
-				case 'adcmdr_import_export':
-					$this->import_export_page();
+				case 'adcmdr_export':
+					$this->export_page();
+					break;
+
+				case 'adcmdr_export':
+					$this->import_page();
 					break;
 
 				case 'adcmdr_manage_stats':
@@ -274,27 +279,17 @@ class AdminDt extends Admin {
 	}
 
 	/**
-	 * Create the import/export page.
+	 * Create the export page.
 	 *
 	 * @return void
 	 */
-	private function import_export_page() {
-		$this->export_section();
-		$this->import_section();
-	}
-
-	/**
-	 * Create the export section.
-	 *
-	 * @return void
-	 */
-	private function export_section() {
+	private function export_page() {
 		$export_nonce = $this->nonce_array( 'adcmdr-do_export', 'export' );
 		?>
 		<h2><?php esc_html_e( 'Export', 'ad-commander-tools' ); ?></h2>
 		<?php
 		if ( ! Export::can_export() ) {
-			$this->info( esc_html__( "Your host doesn't appear to support PHP's ZipArchive library. We are unable to create export bundles at this time.", 'ad-commander-tools' ), array( 'adcmdr-metaitem__warning' ) );
+			$this->info( esc_html__( "Your host doesn't appear to support the necessary libraries for exporting and compressing your data. We are unable to create export bundles at this time.", 'ad-commander-tools' ), array( 'adcmdr-metaitem__warning' ) );
 		} else {
 			$this->form_start();
 			?>
@@ -369,12 +364,12 @@ class AdminDt extends Admin {
 	}
 
 	/**
-	 * Import section.
+	 * Create the import/export page.
 	 *
 	 * @return void
 	 */
-	private function import_section() {
-		$import_nonce = $this->nonce_array( 'adcmdr-do_import', 'import' );
+	private function import_page() {
+		$export_nonce = $this->nonce_array( 'adcmdr-do_import', 'import' );
 		?>
 		<h2><?php esc_html_e( 'Import', 'ad-commander-tools' ); ?></h2>
 		<?php

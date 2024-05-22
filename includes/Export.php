@@ -47,7 +47,7 @@ class Export extends AdminDt {
 	 */
 	public function hooks() {
 		add_action( 'admin_action_adcmdr-do_export', array( $this, 'do_export' ) );
-		add_action( 'admin_action_adcmdr-export_success', array( $this, 'export_success' ) );
+		add_action( 'admin_notices', array( $this, 'export_success' ) );
 	}
 
 	/**
@@ -75,27 +75,26 @@ class Export extends AdminDt {
 
 	/**
 	 * Add admin notice on export success.
-	 *
-	 * TODO: This is not being called.
 	 */
-	public static function export_success() {
-		wo_log( 'export success' );
-		add_action(
-			'admin_notices',
-			function () {
+	public function export_success() {
+		if ( isset( $_GET['action'] ) && sanitize_text_field( wp_unslash( $_GET['action'] ) ) === Util::ns( 'export_success' ) ) {
+			$export_nonce = $this->nonce_array( 'adcmdr-do_export', 'export' );
+			if ( check_admin_referer( $export_nonce['action'], $export_nonce['name'] ) && current_user_can( AdCommander::capability() ) ) {
 				?>
-			<div class="notice notice-success">
-				<p>
-					<?php esc_html_e( 'Your export was completed successfully. You can download your bundle below.', 'ad-commander' ); ?>
-				</p>
-			</div>
-				<?php
+				<div class="notice notice-success is-dismissible">
+					<p>
+						<?php esc_html_e( 'Your export was completed successfully. You can download your bundle below.', 'ad-commander' ); ?>
+					</p>
+				</div>
+					<?php
 			}
-		);
+		}
 	}
 
 	/**
 	 * Get a list of bundles in the export directory.
+	 *
+	 * @param array $filters Only get files with these strings.
 	 *
 	 * @return array
 	 */
@@ -178,6 +177,7 @@ class Export extends AdminDt {
 			array(
 				'action'              => Util::ns( 'export_success' ),
 				$export_nonce['name'] => wp_create_nonce( $export_nonce['action'] ),
+				'tab'                 => 'adcmdr_export',
 			),
 			$url
 		);
