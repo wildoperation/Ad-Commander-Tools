@@ -15,38 +15,47 @@ class UtilDt {
 	 *
 	 * @return array
 	 */
-	public static function headings( $type ) {
+	public static function headings( $type, $include_primary = true, $include_meta = true, $include_extra = true, $prefix_meta_keys = true ) {
+		$primary  = array();
+		$meta     = array();
+		$extra    = array();
+		$headings = array();
+
 		if ( $type === 'ads' ) {
-			return array_unique(
-				array_merge(
-					array( 'ID', 'post_status', 'post_date', 'post_date_gmt', 'post_content', 'post_title', 'post_name', 'post_modified', 'post_modified_gmt', 'menu_order' ),
-					self::prefix_keys( AdPostMeta::post_meta_keys() ),
-					array( 'groups', 'source' )
-				)
-			);
+			$primary = array( 'ID', 'post_status', 'post_date', 'post_date_gmt', 'post_content', 'post_title', 'post_name', 'post_modified', 'post_modified_gmt', 'menu_order' );
+			$meta    = array_keys( AdPostMeta::post_meta_keys() );
+			$extra   = array( 'groups', 'source' );
 		}
 
 		if ( $type === 'groups' ) {
-			return array_unique(
-				array_merge(
-					array( 'term_id', 'name', 'slug' ),
-					self::prefix_keys( GroupTermMeta::tax_group_meta_keys() ),
-					array( 'source' )
-				)
-			);
+			$primary = array( 'term_id', 'name', 'slug' );
+			$meta    = array_keys( GroupTermMeta::tax_group_meta_keys() );
+			$extra   = array( 'source' );
 		}
 
 		if ( $type === 'placements' ) {
-			return array_unique(
-				array_merge(
-					array( 'ID', 'post_status', 'post_date', 'post_date_gmt', 'post_title', 'post_name', 'post_modified', 'post_modified_gmt', 'menu_order' ),
-					self::prefix_keys( PlacementPostMeta::post_meta_keys() ),
-					array( 'source' )
-				)
-			);
+			$primary = array( 'ID', 'post_status', 'post_date', 'post_date_gmt', 'post_title', 'post_name', 'post_modified', 'post_modified_gmt', 'menu_order' );
+			$meta    = array_keys( PlacementPostMeta::post_meta_keys() );
+			$extra   = array( 'source' );
 		}
 
-		return array();
+		if ( $include_primary ) {
+			$headings = array_merge( $headings, $primary );
+		}
+
+		if ( $include_meta ) {
+			if ( $prefix_meta_keys ) {
+				$meta = self::prefix_keys( $meta );
+			}
+
+			$headings = array_merge( $headings, $meta );
+		}
+
+		if ( $include_extra ) {
+			$headings = array_merge( $headings, $extra );
+		}
+
+		return array_unique( $headings );
 	}
 
 
@@ -62,7 +71,7 @@ class UtilDt {
 
 		$keys = array();
 
-		foreach ( array_keys( $arr ) as $key ) {
+		foreach ( $arr as $key ) {
 			$keys[] = $wo_meta->make_key( $key );
 		}
 

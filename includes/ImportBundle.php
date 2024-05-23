@@ -129,9 +129,13 @@ class ImportBundle extends Import {
 		/**
 		 * Finally, we can load the files.
 		 */
+		$this->current_import_id = $basename . '_' . time();
+
 		$import_bundle_options = array_map( 'sanitize_text_field', wp_unslash( $_REQUEST['adcmdr_import_bundle_options'] ) );
 
-		$all_import_types = array( 'groups', 'ads', 'placements', 'stats' ); // Order matters - this is how they will be imported.
+		// Order matters - this is how they will be imported.
+		$all_import_types = array( 'groups', 'ads', 'placements', 'stats' );
+
 		foreach ( $all_import_types as $import_type ) {
 			if ( ! in_array( $import_type, $import_bundle_options, true ) ) {
 				continue;
@@ -145,7 +149,7 @@ class ImportBundle extends Import {
 			$data = $this->csv_to_array( $extract_to_dir . $file );
 
 			if ( ! empty( $data ) ) {
-				$this->import_data( $import_type, $data );
+				$this->import_data( $import_type, $data, array( 'importing_types' => $all_import_types ) );
 			}
 		}
 
@@ -160,11 +164,82 @@ class ImportBundle extends Import {
 	 *
 	 * @param string $import_type The type of data we're importing.
 	 * @param array  $data The data to import.
+	 * @param array  $args Additional arguments used during import.
 	 *
-	 * @return bool
+	 * @return void
 	 */
-	private function import_data( $import_type, $data ) {
+	private function import_data( $import_type, $data, $args = array() ) {
+		switch ( $import_type ) {
+			case 'groups':
+				$this->import_groups( $this->process( $data, 'groups' ) );
+				break;
+
+			case 'ads':
+				$this->import_ads( $this->process( $data, 'ads' ) );
+				break;
+
+			case 'placements':
+				$this->import_placements( $this->process( $data, 'placements' ) );
+				break;
+		}
 	}
+
+	/**
+	 * Prepare groups for import.
+	 *
+	 * @param array $data The data to prepare.
+	 *
+	 * @return array
+	 */
+	private function process( $data, $type ) {
+		$processed = array();
+
+		switch ( $type ) {
+			case 'groups':
+				$primary_keys = UtilDt::headings( 'groups', true, false, false, false );
+				$meta_keys    = UtilDt::headings( 'groups', false, true, true, false );
+				$unfiltered   = array( 'custom_code_before', 'custom_code_after' );
+				break;
+
+			case 'ads':
+				$primary_keys = UtilDt::headings( 'ads', true, false, false, false );
+				$meta_keys    = UtilDt::headings( 'ads', false, true, true, false );
+				$unfiltered   = array( 'custom_code_before', 'custom_code_after', 'adcontent_text', 'adcontent_rich' );
+				break;
+
+			case 'placements':
+				$primary_keys = UtilDt::headings( 'placements', true, false, false, false );
+				$meta_keys    = UtilDt::headings( 'placements', false, true, true, false );
+				$unfiltered   = array( 'custom_code_before', 'custom_code_after' );
+				break;
+		}
+
+		foreach ( $data as $item ) {
+			$this_item = array(
+				'item' => array(),
+				'meta' => array(),
+			);
+
+			foreach ( $item as $key => $value ) {
+				$key   = $this->deprefix_key( $key );
+				$value = $this->maybe_unserialize_and_sanitize( $key, $value, $unfiltered );
+
+				if ( in_array( $key, $primary_keys, true ) ) {
+					$this_item['item'][ $key ] = $value;
+					continue;
+				}
+
+				if ( in_array( $key, $meta_keys, true ) ) {
+					$this_item['meta'][ $key ] = $value;
+				}
+			}
+
+			$processed[] = $this_item;
+		}
+
+		return $processed;
+	}
+
 
 	/**
 	 * Find a file with a given string in the filename. Assumes we have already filtered down to accepted filetypes (e.g., .csv)
@@ -248,7 +323,7 @@ class ImportBundle extends Import {
 		if ( $handle ) {
 			while ( ( $row = fgetcsv( $handle, 4096 ) ) !== false ) {
 				if ( empty( $fields ) ) {
-						$fields = $row;
+						$fields = array_map( 'sanitize_text_field', $row );
 						continue;
 				}
 

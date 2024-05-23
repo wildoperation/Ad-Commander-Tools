@@ -286,7 +286,8 @@ class Export extends AdminDt {
 	 * @return array
 	 */
 	private function process_groups() {
-		$headings         = UtilDt::headings( 'groups' );
+		$headings = UtilDt::headings( 'groups' );
+		wo_log( $headings );
 		$processed_groups = array();
 
 		$groups = Query::groups();
@@ -312,11 +313,7 @@ class Export extends AdminDt {
 						$value = $meta[ $heading ];
 					}
 
-					if ( is_array( $value ) ) {
-						$value = wp_json_encode( $value );
-					}
-
-					$this_group[ $heading ] = $value;
+					$this_group[ $heading ] = maybe_serialize( $value );
 				}
 
 				$processed_groups[] = $this_group;
@@ -342,17 +339,17 @@ class Export extends AdminDt {
 
 		if ( $ads ) {
 			foreach ( $ads as $ad ) {
-				$meta  = $this->wo_meta->get_post_meta( $ad->ID, AdPostMeta::post_meta_keys() );
-				$terms = get_the_terms( $ad->ID, AdCommander::tax_group() );
-				$slugs = array();
+				$meta       = $this->wo_meta->get_post_meta( $ad->ID, AdPostMeta::post_meta_keys() );
+				$terms      = get_the_terms( $ad->ID, AdCommander::tax_group() );
+				$term_names = array();
 
 				if ( $terms && ! empty( $terms ) ) {
-					$slugs = wp_list_pluck( $terms, 'slug' );
+					$term_names = wp_list_pluck( $terms, 'name' );
 				}
 
 				$this_ad = array(
 					'source' => 'adcmdr_export',
-					'groups' => wp_json_encode( $slugs ),
+					'groups' => maybe_serialize( $term_names ),
 				);
 
 				foreach ( $headings as $heading ) {
@@ -368,11 +365,7 @@ class Export extends AdminDt {
 						$value = $meta[ $heading ];
 					}
 
-					if ( is_array( $value ) ) {
-						$value = wp_json_encode( $value );
-					}
-
-					$this_ad[ $heading ] = $value;
+					$this_ad[ $heading ] = maybe_serialize( $value );
 				}
 
 				$processed_ads[] = $this_ad;
@@ -417,11 +410,7 @@ class Export extends AdminDt {
 						$value = $meta[ $heading ];
 					}
 
-					if ( is_array( $value ) ) {
-						$value = wp_json_encode( $value );
-					}
-
-					$this_placement[ $heading ] = $value;
+					$this_placement[ $heading ] = maybe_serialize( $value );
 				}
 
 				$processed_placements[] = $this_placement;
