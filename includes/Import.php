@@ -103,7 +103,7 @@ class Import extends AdminDt {
 	 *
 	 * @return void|bool
 	 */
-	protected function import_groups( $data ) {
+	protected function import_groups( $data, $args = array() ) {
 		if ( ! $data || empty( $data ) ) {
 			return false;
 		}
@@ -147,7 +147,8 @@ class Import extends AdminDt {
 				continue;
 			}
 
-			// The ad IDs won't match up, so we update this later.   * TODO: After ads are imported, need to add ad_order and ad_weight meta to each group.
+			// The ad IDs won't match up, so we update this later.
+			// TODO: After ads are imported, need to add ad_order and ad_weight meta to each group.
 			$do_not_copy_meta  = array( 'ad_order', 'ad_weights' );
 			$allowed_meta_keys = array_merge( UtilDt::headings( 'groups', false, true, true, false ), $allowed_import_keys );
 
@@ -174,7 +175,7 @@ class Import extends AdminDt {
 	 *
 	 * @return int|bool
 	 */
-	private function import_post( $data, $post_type, $do_not_copy, $allowed_keys ) {
+	private function import_post( $data, $post_type, $do_not_copy, $allowed_keys, $args = array() ) {
 		if ( ! $data || empty( $data ) ) {
 			return false;
 		}
@@ -190,8 +191,11 @@ class Import extends AdminDt {
 		$meta['import_id'] = $this->current_import_id ? $this->current_import_id : time();
 		$new_post_params   = array( 'post_type' => $post_type );
 
-		if ( ! in_array( 'post_status', $do_not_copy ) ) {
-			$new_post_params['post_status'] = 'draft';
+		if ( ( isset( $args['set_post_status'] ) && $args['set_post_status'] !== 'match' ) || ! isset( $args['set_post_status'] ) ) {
+			$new_post_params['post_status'] = isset( $args['set_post_status'] ) ? $args['set_post_status'] : 'draft';
+			$do_not_copy['post'][]          = 'post_status';
+			$do_not_copy['post'][]          = 'post_date';
+			$do_not_copy['post'][]          = 'post_date_gmt';
 		}
 
 		foreach ( $p as $p_key => $p_value ) {
@@ -242,54 +246,80 @@ class Import extends AdminDt {
 	/**
 	 * Import ads. Assumes data has already been processed, formatted, and sanitized.
 	 *
-	 * TODO: Import images
-	 *
 	 * @param array $data Array of posts and post meta.
 	 *
 	 * @return void|bool
 	 */
-	protected function import_ads( $data ) {
+	protected function import_ads( $data, $args = array() ) {
 		if ( ! $data || empty( $data ) ) {
 			return false;
 		}
 
+		$args = wp_parse_args(
+			$args,
+			array( 'set_post_status' => 'draft' )
+		);
+
 		$do_not_copy = array(
-			'post' => array( 'ID', 'post_status', 'post_date', 'post_date_gmt', 'post_modified', 'post_modified_gmt' ),
-			'meta' => array(),
+			'post' => array( 'ID', 'post_modified', 'post_modified_gmt' ),
+			'meta' => array( 'featured_image' ),
 		);
 
 		$new_post_ids = array();
 
 		foreach ( $data as $ad ) {
-			$new_post_ids[] = $this->import_post( $ad, AdCommander::posttype_ad(), $do_not_copy, UtilDt::headings( 'ads', false, true, true, false ) );
+			$new_post_id = $this->import_post( $ad, AdCommander::posttype_ad(), $do_not_copy, UtilDt::headings( 'ads', false, true, true, false ), $args );
 
-			// Now import images.
+			if ( $new_post_id ) {
+				$new_post_ids[] = $new_post_id;
+
+				if ( isset( $ad['meta']['featured_image'] ) && $ad['meta']['featured_image'] ) {
+					$featured_image_url = sanitize_url( $ad['meta']['featured_image'] );
+
+					if ( $featured_image_url ) {
+						$image_id = media_sideload_image( $featured_image_url, $new_post_id, null, 'id' );
+
+						if ( is_int( $image_id ) ) {
+							set_post_thumbnail( $new_post_id, $image_id );
+						}
+					}
+				}
+			}
 		}
 	}
 
 	/**
 	 * Import ads. Assumes data has already been processed, formatted, and sanitized.
 	 *
-	 * TODO: Update placement items
-	 *
 	 * @param array $data Array of posts and post meta.
 	 *
 	 * @return void|bool
 	 */
-	protected function import_placements( $data ) {
+	protected function import_placements( $data, $args = array() ) {
 		if ( ! $data || empty( $data ) ) {
 			return false;
 		}
 
+		$args = wp_parse_args(
+			$args,
+			array( 'set_post_status' => 'draft' )
+		);
+
 		$do_not_copy = array(
-			'post' => array( 'ID', 'post_status', 'post_date', 'post_date_gmt', 'post_modified', 'post_modified_gmt' ),
+			'post' => array( 'ID', 'post_date', 'post_date_gmt', 'post_modified', 'post_modified_gmt' ),
 			'meta' => array( 'placement_items' ),
 		);
 
 		$new_post_ids = array();
 
 		foreach ( $data as $ad ) {
-			$new_post_ids[] = $this->import_post( $ad, AdCommander::posttype_placement(), $do_not_copy, UtilDt::headings( 'placements', false, true, true, false ) );
+			$new_post_id = $this->import_post( $ad, AdCommander::posttype_placement(), $do_not_copy, UtilDt::headings( 'placements', false, true, true, false ), $args );
+
+			if ( $new_post_id ) {
+				$new_post_ids[] = $new_post_id;
+
+				// now update placement items meta with new ad IDs
+			}
 		}
 	}
 }

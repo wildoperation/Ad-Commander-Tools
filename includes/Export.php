@@ -286,18 +286,20 @@ class Export extends AdminDt {
 	 * @return array
 	 */
 	private function process_groups() {
-		$headings = UtilDt::headings( 'groups' );
-		wo_log( $headings );
+		$headings         = UtilDt::headings( 'groups' );
 		$processed_groups = array();
 
 		$groups = Query::groups();
 
 		if ( $groups ) {
+			$home_url = home_url();
+
 			foreach ( $groups as $group ) {
 				$meta = $this->wo_meta->get_term_meta( $group->term_id, GroupTermMeta::tax_group_meta_keys() );
 
 				$this_group = array(
-					'source' => 'adcmdr_export',
+					'source'      => 'adcmdr_export',
+					'source_site' => $home_url,
 				);
 
 				foreach ( $headings as $heading ) {
@@ -338,6 +340,8 @@ class Export extends AdminDt {
 		$ads = Query::ads( 'post_title', 'asc', Util::any_post_status( array( 'trash' ) ) );
 
 		if ( $ads ) {
+			$home_url = home_url();
+
 			foreach ( $ads as $ad ) {
 				$meta       = $this->wo_meta->get_post_meta( $ad->ID, AdPostMeta::post_meta_keys() );
 				$terms      = get_the_terms( $ad->ID, AdCommander::tax_group() );
@@ -347,9 +351,17 @@ class Export extends AdminDt {
 					$term_names = wp_list_pluck( $terms, 'name' );
 				}
 
+				$featured_image = '';
+
+				if ( has_post_thumbnail( $ad->ID ) ) {
+					$featured_image = get_the_post_thumbnail_url( $ad->ID, 'full' );
+				}
+
 				$this_ad = array(
-					'source' => 'adcmdr_export',
-					'groups' => maybe_serialize( $term_names ),
+					'source'         => 'adcmdr_export',
+					'source_site'    => $home_url,
+					'featured_image' => $featured_image,
+					'groups'         => maybe_serialize( $term_names ),
 				);
 
 				foreach ( $headings as $heading ) {
@@ -390,11 +402,14 @@ class Export extends AdminDt {
 		$placements = Query::placements( Util::any_post_status( array( 'trash' ) ) );
 
 		if ( $placements ) {
+			$home_url = home_url();
+
 			foreach ( $placements as $placement ) {
 				$meta = $this->wo_meta->get_post_meta( $placement->ID, PlacementPostMeta::post_meta_keys() );
 
 				$this_placement = array(
-					'source' => 'adcmdr_export',
+					'source'      => 'adcmdr_export',
+					'source_site' => $home_url,
 				);
 
 				foreach ( $headings as $heading ) {

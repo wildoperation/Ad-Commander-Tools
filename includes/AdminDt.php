@@ -417,7 +417,7 @@ class AdminDt extends Admin {
 				<?php
 				$options = array(
 					'draft' => __( 'Draft', 'ad-commander-tools' ),
-					'match' => __( 'Match imported status', 'ad-commander-tools' ),
+					'match' => __( 'Match imported status and post date', 'ad-commander-tools' ),
 				);
 
 				$id = $this->sf()->key( 'import_set_status' );

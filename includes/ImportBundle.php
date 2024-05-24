@@ -77,6 +77,11 @@ class ImportBundle extends Import {
 			$this->cleanup_and_redirect( $import_nonce, $bundle_tmp );
 		}
 
+		$set_post_status = isset( $_REQUEST['adcmdr_import_set_status'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['adcmdr_import_set_status'] ) ) : 'draft';
+		if ( ! in_array( $set_post_status, array( 'draft', 'match' ), true ) ) {
+			$set_post_status = 'draft';
+		}
+
 		/**
 		 * Setup filesystem
 		 */
@@ -149,7 +154,14 @@ class ImportBundle extends Import {
 			$data = $this->csv_to_array( $extract_to_dir . $file );
 
 			if ( ! empty( $data ) ) {
-				$this->import_data( $import_type, $data, array( 'importing_types' => $all_import_types ) );
+				$this->import_data(
+					$import_type,
+					$data,
+					array(
+						'importing_types' => $all_import_types,
+						'set_post_status' => $set_post_status,
+					)
+				);
 			}
 		}
 
@@ -171,15 +183,15 @@ class ImportBundle extends Import {
 	private function import_data( $import_type, $data, $args = array() ) {
 		switch ( $import_type ) {
 			case 'groups':
-				$this->import_groups( $this->process( $data, 'groups' ) );
+				$this->import_groups( $this->process( $data, 'groups' ), $args );
 				break;
 
 			case 'ads':
-				$this->import_ads( $this->process( $data, 'ads' ) );
+				$this->import_ads( $this->process( $data, 'ads' ), $args );
 				break;
 
 			case 'placements':
-				$this->import_placements( $this->process( $data, 'placements' ) );
+				$this->import_placements( $this->process( $data, 'placements' ), $args );
 				break;
 		}
 	}
