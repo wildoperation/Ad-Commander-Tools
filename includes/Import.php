@@ -306,7 +306,7 @@ class Import extends AdminDt {
 		);
 
 		$do_not_copy = array(
-			'post' => array( 'ID', 'post_date', 'post_date_gmt', 'post_modified', 'post_modified_gmt' ),
+			'post' => array( 'ID', 'post_modified', 'post_modified_gmt' ),
 			'meta' => array( 'placement_items' ),
 		);
 
