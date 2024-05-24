@@ -16,6 +16,27 @@ class Import extends AdminDt {
 	protected $current_import_id;
 
 	/**
+	 * An array that associates imported post IDs with new post IDs.
+	 *
+	 * @var array
+	 */
+	protected $imported_ad_ids;
+
+	/**
+	 * An array that associates imported group IDs with new group IDs.
+	 *
+	 * @var array
+	 */
+	protected $imported_group_ids;
+
+	/**
+	 * Group meta to update after the ad import.
+	 *
+	 * @var array
+	 */
+	protected $group_meta_after_ads;
+
+	/**
 	 * An instance of WOMeta.
 	 *
 	 * @var WOMeta
@@ -153,8 +174,23 @@ class Import extends AdminDt {
 			$allowed_meta_keys = array_merge( UtilDt::headings( 'groups', false, true, true, false ), $allowed_import_keys );
 
 			foreach ( $meta as $meta_key => $meta_value ) {
-				if ( ! in_array( $meta_key, $allowed_meta_keys, true ) || in_array( $meta_key, $do_not_copy_meta, true ) ) {
+				if ( ! in_array( $meta_key, $allowed_meta_keys, true ) ) {
 					continue;
+				}
+
+				if ( in_array( $meta_key, $do_not_copy_meta, true ) ) {
+					if ( ! $meta_value || isset( $meta[ 'imported_' . $meta_key ] ) ) {
+						continue;
+					}
+
+					$meta_key            = 'imported_' . $meta_key;
+					$allowed_meta_keys[] = $meta_key;
+
+					if ( ! isset( $this->group_meta_after_ads[ $new_term['term_id'] ] ) ) {
+						$this->group_meta_after_ads[ $new_term['term_id'] ] = array();
+					}
+
+					$this->group_meta_after_ads[ $new_term['term_id'] ][ $meta_key ] = $meta_value;
 				}
 
 				$meta_key = $this->wo_meta()->make_key( $meta_key );
@@ -162,7 +198,90 @@ class Import extends AdminDt {
 				delete_term_meta( $new_term['term_id'], $meta_key );
 				add_term_meta( $new_term['term_id'], $meta_key, $meta_value );
 			}
+
+			/**
+			 * Store group ID for syncing to groups later.
+			 */
+			if ( isset( $meta['imported_term_id'] ) ) {
+				$this->imported_ad_ids[ 'imported_term_id_' . $meta['imported_term_id'] ] = $new_term['term_id'];
+			}
 		}
+	}
+
+	private function import_group_post_relationships() {
+
+		if ( ! empty( $this->group_meta_after_ads ) ) {
+			// wo_log( $this->group_meta_after_ads );
+
+			$key_is_post_id = array( 'ad_weights' );
+
+			foreach ( $this->group_meta_after_ads as $term_id => $meta ) {
+				foreach ( $meta as $meta_key => $meta_value ) {
+					$meta_key = str_replace( 'imported_', '', $meta_key );
+					$new_meta = array();
+
+					/**
+					 * This currently only works if the meta is an array.
+					 * We don't currently have anything that wouldn't be an array...
+					 */
+					if ( is_array( $meta_value ) ) {
+
+						foreach ( $meta_value as $subkey => $subvalue ) {
+							if ( in_array( $meta_key, $key_is_post_id, true ) ) {
+								$post_id = $subkey;
+							} else {
+								$post_id = $subvalue;
+							}
+
+							if ( ! isset( $this->imported_ad_ids[ 'imported_post_id_' . $post_id ] ) ) {
+								continue;
+							}
+
+							$new_post_id = $this->imported_ad_ids[ 'imported_post_id_' . $post_id ];
+
+							if ( in_array( $meta_key, $key_is_post_id, true ) ) {
+								$new_meta[ $new_post_id ] = $subvalue;
+							} else {
+								$new_meta[] = $new_post_id;
+							}
+						}
+
+						wo_log( $new_meta );
+					}
+
+					if ( ! empty( $new_meta ) ) {
+						$new_key = $this->wo_meta()->make_key( $meta_key );
+						delete_post_meta( $term_id, $new_key );
+						add_term_meta( $term_id, $new_key, $new_meta );
+					}
+				}
+			}
+		}
+
+		/*
+		$update_meta = array(
+			'ad_order'   => 'value',
+			'ad_weights' => 'key',
+		);*/
+
+		/*
+		foreach ( $update_meta as $meta => $post_id_keyvalue ) {
+
+			if ( ! empty( $groups ) ) {
+				foreach ( $groups as $group ) {
+					$term_meta = get_term_meta( $group->term_id, '_adcmdr_imported_' . $meta, true );
+					wo_log( $term_meta );
+
+					if ( $term_meta && ! empty( $term_meta ) ) {
+						if ( ! is_array( $term_meta ) ) {
+							$term_meta = array( $term_meta );
+						}
+
+						$post_ids = ( $post_id_keyvalue === 'value' ) ? array_values( $term_meta ) : array_keys( $term_meta );
+					}
+				}
+			}
+		}*/
 	}
 
 	/**
@@ -240,6 +359,44 @@ class Import extends AdminDt {
 			add_post_meta( $new_post_id, $meta_key, $meta_value );
 		}
 
+		/**
+		 * Store post ID for syncing to groups later.
+		 */
+		if ( isset( $meta['imported_post_id'] ) ) {
+			$this->imported_ad_ids[ 'imported_post_id_' . $meta['imported_post_id'] ] = $new_post_id;
+		}
+
+		/**
+		 * Groups
+		 */
+		if ( isset( $args['importing_types'] ) && in_array( 'groups', $args['importing_types'], true ) && isset( $data['meta']['groups'] ) && ! empty( $data['meta']['groups'] ) ) {
+
+			foreach ( $data['meta']['groups'] as $imported_group ) {
+				$imported_group = sanitize_text_field( $imported_group );
+
+				$groups = Query::groups(
+					false,
+					array(
+						'relation' => 'AND',
+						array(
+							'key'     => '_adcmdr_import_id',
+							'value'   => $this->current_import_id,
+							'compare' => '=',
+						),
+						array(
+							'key'     => '_adcmdr_imported_name',
+							'value'   => $imported_group,
+							'compare' => '=',
+						),
+					)
+				);
+
+				if ( ! empty( $groups ) && isset( $groups[0]->term_id ) ) {
+					wp_set_object_terms( $new_post_id, $groups[0]->term_id, AdCommander::tax_group() );
+				}
+			}
+		}
+
 		return $new_post_id;
 	}
 
@@ -276,7 +433,7 @@ class Import extends AdminDt {
 				if ( isset( $ad['meta']['featured_image'] ) && $ad['meta']['featured_image'] ) {
 					$featured_image_url = sanitize_url( $ad['meta']['featured_image'] );
 
-					if ( $featured_image_url ) {
+					if ( $featured_image_url && apply_filters( 'adcmdr_dt_import_featured_images', true ) ) {
 						$image_id = media_sideload_image( $featured_image_url, $new_post_id, null, 'id' );
 
 						if ( is_int( $image_id ) ) {
@@ -286,6 +443,8 @@ class Import extends AdminDt {
 				}
 			}
 		}
+
+		$this->import_group_post_relationships();
 	}
 
 	/**
@@ -318,7 +477,7 @@ class Import extends AdminDt {
 			if ( $new_post_id ) {
 				$new_post_ids[] = $new_post_id;
 
-				// now update placement items meta with new ad IDs
+				// TODO: now update placement items meta with new ad IDs
 			}
 		}
 	}
