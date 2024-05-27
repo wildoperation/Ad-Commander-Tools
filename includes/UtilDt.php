@@ -24,7 +24,7 @@ class UtilDt {
 		if ( $type === 'ads' ) {
 			$primary = array( 'ID', 'post_status', 'post_date', 'post_date_gmt', 'post_content', 'post_title', 'post_name', 'post_modified', 'post_modified_gmt', 'menu_order' );
 			$meta    = array_keys( AdPostMeta::post_meta_keys() );
-			$extra   = array( 'groups', 'source', 'source_site', 'featured_image' );
+			$extra   = array( 'groups', 'source', 'source_site', 'featured_image_url', 'thumbnail_id' );
 		}
 
 		if ( $type === 'groups' ) {

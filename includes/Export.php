@@ -343,25 +343,30 @@ class Export extends AdminDt {
 			$home_url = home_url();
 
 			foreach ( $ads as $ad ) {
-				$meta       = $this->wo_meta->get_post_meta( $ad->ID, AdPostMeta::post_meta_keys() );
-				$terms      = get_the_terms( $ad->ID, AdCommander::tax_group() );
-				$term_names = array();
+				$meta         = $this->wo_meta->get_post_meta( $ad->ID, AdPostMeta::post_meta_keys() );
+				$terms        = get_the_terms( $ad->ID, AdCommander::tax_group() );
+				$terms_export = array();
 
 				if ( $terms && ! empty( $terms ) ) {
-					$term_names = wp_list_pluck( $terms, 'name' );
+					foreach ( $terms as $term ) {
+						$terms_export[ $term->term_id ] = $term->name;
+					}
 				}
 
-				$featured_image = '';
+				$featured_image_url = '';
+				$thumbnail_id       = '';
 
 				if ( has_post_thumbnail( $ad->ID ) ) {
-					$featured_image = get_the_post_thumbnail_url( $ad->ID, 'full' );
+					$thumbnail_id       = get_post_thumbnail_id( $ad->ID );
+					$featured_image_url = get_the_post_thumbnail_url( $ad->ID, 'full' );
 				}
 
 				$this_ad = array(
-					'source'         => 'adcmdr_export',
-					'source_site'    => $home_url,
-					'featured_image' => $featured_image,
-					'groups'         => maybe_serialize( $term_names ),
+					'source'             => 'adcmdr_export',
+					'source_site'        => $home_url,
+					'featured_image_url' => $featured_image_url,
+					'thumbnail_id'       => $thumbnail_id,
+					'groups'             => maybe_serialize( $terms_export ),
 				);
 
 				foreach ( $headings as $heading ) {
