@@ -208,23 +208,25 @@ class ImportBundle extends Import {
 
 		switch ( $type ) {
 			case 'groups':
-				$primary_keys = UtilDt::headings( 'groups', true, false, false, false );
-				$meta_keys    = UtilDt::headings( 'groups', false, true, true, false );
-				$unfiltered   = array( 'custom_code_before', 'custom_code_after' );
+				$primary_keys     = array_keys( UtilDt::headings( 'groups', true, false, false, false ) );
+				$meta_keys        = array_keys( UtilDt::headings( 'groups', false, true, true, false ) );
+				$all_allowed_keys = UtilDt::headings( 'groups', true, true, true, false );
 				break;
 
 			case 'ads':
-				$primary_keys = UtilDt::headings( 'ads', true, false, false, false );
-				$meta_keys    = UtilDt::headings( 'ads', false, true, true, false );
-				$unfiltered   = array( 'custom_code_before', 'custom_code_after', 'adcontent_text', 'adcontent_rich' );
+				$primary_keys     = array_keys( UtilDt::headings( 'ads', true, false, false, false ) );
+				$meta_keys        = array_keys( UtilDt::headings( 'ads', false, true, true, false ) );
+				$all_allowed_keys = UtilDt::headings( 'ads', true, true, true, false );
 				break;
 
 			case 'placements':
-				$primary_keys = UtilDt::headings( 'placements', true, false, false, false );
-				$meta_keys    = UtilDt::headings( 'placements', false, true, true, false );
-				$unfiltered   = array( 'custom_code_before', 'custom_code_after' );
+				$primary_keys     = array_keys( UtilDt::headings( 'placements', true, false, false, false ) );
+				$meta_keys        = array_keys( UtilDt::headings( 'placements', false, true, true, false ) );
+				$all_allowed_keys = UtilDt::headings( 'placements', true, true, true, false );
 				break;
 		}
+
+		$data = $this->sanitize_data_for_input( $data, $all_allowed_keys );
 
 		foreach ( $data as $item ) {
 			$this_item = array(
@@ -233,8 +235,7 @@ class ImportBundle extends Import {
 			);
 
 			foreach ( $item as $key => $value ) {
-				$key   = $this->deprefix_key( $key );
-				$value = $this->maybe_unserialize_and_sanitize( $key, $value, $unfiltered );
+				$key = $this->deprefix_key( $key );
 
 				if ( in_array( $key, $primary_keys, true ) ) {
 					$this_item['item'][ $key ] = $value;

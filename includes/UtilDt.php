@@ -22,21 +22,72 @@ class UtilDt {
 		$headings = array();
 
 		if ( $type === 'ads' ) {
-			$primary = array( 'ID', 'post_status', 'post_date', 'post_date_gmt', 'post_content', 'post_title', 'post_name', 'post_modified', 'post_modified_gmt', 'menu_order' );
-			$meta    = array_keys( AdPostMeta::post_meta_keys() );
-			$extra   = array( 'groups', 'source', 'source_site', 'featured_image_url', 'thumbnail_id' );
+			$primary = array(
+				'ID'                => array( 'type' => 'int' ),
+				'post_status'       => array(
+					'type'       => 'str',
+					'restricted' => Util::any_post_status( 'trash' ),
+					'default'    => 'draft',
+				),
+				'post_date'         => array( 'type' => 'str' ),
+				'post_date_gmt'     => array( 'type' => 'str' ),
+				'post_content'      => array( 'type' => 'editor' ),
+				'post_title'        => array( 'type' => 'str' ),
+				'post_name'         => array( 'type' => 'str' ),
+				'post_modified'     => array( 'type' => 'str' ),
+				'post_modified_gmt' => array( 'type' => 'str' ),
+				'menu_order'        => array(
+					'type'    => 'int',
+					'default' => 0,
+				),
+			);
+			$meta    = AdPostMeta::post_meta_keys();
+			$extra   = array(
+				'groups'             => array( 'type' => 'str' ),
+				'source'             => array( 'type' => 'str' ),
+				'source_site'        => array( 'type' => 'str' ),
+				'featured_image_url' => array( 'type' => 'str' ),
+				'thumbnail_id'       => array( 'type' => 'int' ),
+			);
 		}
 
 		if ( $type === 'groups' ) {
-			$primary = array( 'term_id', 'name', 'slug' );
-			$meta    = array_keys( GroupTermMeta::tax_group_meta_keys() );
-			$extra   = array( 'source', 'source_site' );
+			$primary = array(
+				'term_id' => array( 'type' => 'int' ),
+				'name'    => array( 'type' => 'str' ),
+				'slug'    => array( 'type' => 'str' ),
+			);
+			$meta    = GroupTermMeta::tax_group_meta_keys();
+			$extra   = array(
+				'source'      => array( 'type' => 'str' ),
+				'source_site' => array( 'type' => 'str' ),
+			);
 		}
 
 		if ( $type === 'placements' ) {
-			$primary = array( 'ID', 'post_status', 'post_date', 'post_date_gmt', 'post_title', 'post_name', 'post_modified', 'post_modified_gmt', 'menu_order' );
-			$meta    = array_keys( PlacementPostMeta::post_meta_keys() );
-			$extra   = array( 'source', 'source_site' );
+			$primary = array(
+				'ID'                => array( 'type' => 'int' ),
+				'post_status'       => array(
+					'type'       => 'str',
+					'restricted' => Util::any_post_status( 'trash' ),
+					'default'    => 'draft',
+				),
+				'post_date'         => array( 'type' => 'str' ),
+				'post_date_gmt'     => array( 'type' => 'str' ),
+				'post_title'        => array( 'type' => 'str' ),
+				'post_name'         => array( 'type' => 'str' ),
+				'post_modified'     => array( 'type' => 'str' ),
+				'post_modified_gmt' => array( 'type' => 'str' ),
+				'menu_order'        => array(
+					'type'    => 'int',
+					'default' => 0,
+				),
+			);
+			$meta    = PlacementPostMeta::post_meta_keys();
+			$extra   = array(
+				'source'      => array( 'type' => 'str' ),
+				'source_site' => array( 'type' => 'str' ),
+			);
 		}
 
 		if ( $include_primary ) {
@@ -55,7 +106,7 @@ class UtilDt {
 			$headings = array_merge( $headings, $extra );
 		}
 
-		return array_unique( $headings );
+		return $headings;
 	}
 
 
@@ -69,12 +120,12 @@ class UtilDt {
 	public static function prefix_keys( $arr ) {
 		$wo_meta = new WOMeta( AdCommander::ns() );
 
-		$keys = array();
+		$keyed = array();
 
-		foreach ( $arr as $key ) {
-			$keys[] = $wo_meta->make_key( $key );
+		foreach ( $arr as $key => $value ) {
+			$keyed[ $wo_meta->make_key( $key ) ] = $value;
 		}
 
-		return $keys;
+		return $keyed;
 	}
 }

@@ -42,7 +42,8 @@ class AdminDt extends Admin {
 			add_filter(
 				'adcmdr_dt_import_featured_images',
 				function () {
-					return false;
+					// return false;
+					return true;
 				}
 			);
 		}

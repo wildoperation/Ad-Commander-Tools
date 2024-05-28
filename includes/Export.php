@@ -286,7 +286,7 @@ class Export extends AdminDt {
 	 * @return array
 	 */
 	private function process_groups() {
-		$headings         = UtilDt::headings( 'groups' );
+		$headings         = array_keys( UtilDt::headings( 'groups' ) );
 		$processed_groups = array();
 
 		$groups = Query::groups();
@@ -334,7 +334,7 @@ class Export extends AdminDt {
 	 * @return array
 	 */
 	private function process_ads() {
-		$headings      = UtilDt::headings( 'ads' );
+		$headings      = array_keys( UtilDt::headings( 'ads' ) );
 		$processed_ads = array();
 
 		$ads = Query::ads( 'post_title', 'asc', Util::any_post_status( array( 'trash' ) ) );
@@ -401,7 +401,7 @@ class Export extends AdminDt {
 	 * @return array
 	 */
 	private function process_placements() {
-		$headings             = UtilDt::headings( 'placements' );
+		$headings             = array_keys( UtilDt::headings( 'placements' ) );
 		$processed_placements = array();
 
 		$placements = Query::placements( Util::any_post_status( array( 'trash' ) ) );

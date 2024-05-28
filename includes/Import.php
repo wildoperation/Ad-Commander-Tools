@@ -2,6 +2,7 @@
 namespace ADCmdr;
 
 use ADCmdr\Vendor\WOAdminFramework\WOMeta;
+use ADCmdr\Vendor\WOAdminFramework\WOUtilities;
 
 /**
  * Import functionality
@@ -82,35 +83,127 @@ class Import extends AdminDt {
 		exit;
 	}
 
-	protected function sanitize_imported_value( $value ) {
+	/**
+	 * This function sanitizses data in the same way it's sanitized if saved in the WordPress admin.
+	 * All data is sanitized with native WordPress sanitization functions (in WOAdminFramework),
+	 * but this logic allows us to have default values and special sanitization logic to match expected data types,
+	 *
+	 * @param array $all_data The full array of data to sanitize.
+	 * @param array $allowed_keys The allowed keys and associated settings.
+	 *
+	 * @return array
+	 */
+	protected function sanitize_data_for_input( $all_data, $allowed_keys ) {
 
-		/***
-		 * TODO: This should probably use the same sanitization as when we save meta keys (from WOAdmin)
-		 * Doing so would implement current_user_can('unfiltered_html') and prevent someone from importing a CSV with scripts.
-		 */
-		if ( ! $value && $value !== 0 && $value !== '0' ) {
-			return $value;
+		$sanitized_data = array();
+
+		foreach ( $all_data as $data ) {
+			/**
+			 * Loop through all allowed keys and their values.
+			 * Any data now in the allowed_keys set will be ignored.
+			 */
+			$processed_data = array();
+
+			foreach ( $allowed_keys as $key => $allowed_keyvalue ) {
+				$value = null;
+
+				/**
+				 * Create namespaced key for checking $data
+				 * Either the namespaced key (meta) or non-namedspaced (primary and extra data) will be accepted.
+				 */
+				$full_key = $this->wo_meta()->make_key( $key );
+				$this_key = ( isset( $data[ $full_key ] ) ) ? $full_key : $key;
+
+				if ( isset( $data[ $this_key ] ) ) {
+					$data[ $this_key ] = maybe_unserialize( $data[ $this_key ] );
+				}
+
+				if ( isset( $data[ $this_key ] ) && isset( $allowed_keyvalue['children'] ) ) {
+					/**
+					 * This allowed_keyvalue has children.
+					 * This is often used with repeater fields that have sub-fields.
+					 * Each child will be processed, and the entire value will be saved as a serialized array.
+					 */
+					$value = array();
+
+					/**
+					 * Most often in this scenario, the $data value will be an array.
+					 * If it's not, we'll make it one.
+					 */
+					$data_arrs = WOUtilities::arrayify( $data[ $this_key ] );
+
+					foreach ( $data_arrs as $data_arr ) {
+						if ( ! empty( $allowed_keyvalue['children'] ) ) {
+							$child_values = array();
+
+							/**
+							 * Loop through each child key and sanitize it.
+							 */
+							foreach ( $allowed_keyvalue['children'] as $child_key => $child_value ) {
+								if ( ! isset( $data_arr[ $child_key ] ) || ! $data_arr[ $child_key ] ) {
+
+									/**
+									 * In some cases, if a particular child is missing we may want to invalidate the entire row.
+									 * If that happens, reset our child_values so that it is not later added to the stored value.
+									 */
+									if ( isset( $child_value['required'] ) && $child_value['required'] === true ) {
+										$child_values = array();
+										break;
+									}
+
+									/**
+									 * Oherwise, parse the default.
+									 */
+									$child_values[ $child_key ] = $this->wo_meta()->parse_default( $child_value );
+								} else {
+									/**
+									 * If the child was posted, sanitize the input.
+									 */
+									$child_values[ $child_key ] = $this->wo_meta()->sanitize_meta_input( $child_value, $data_arr[ $child_key ] );
+								}
+							}
+
+							/**
+							 * Store this child in our parent meta array.
+							 */
+							if ( ! empty( $child_values ) ) {
+								$value[] = $child_values;
+							}
+						}
+					}
+
+					/**
+					 * If we didn't have any children rows, parse the default of the parent.
+					 */
+					if ( empty( $value ) ) {
+						$value = $this->wo_meta()->parse_default( $allowed_keyvalue );
+					}
+				} elseif ( isset( $data[ $this_key ] ) ) {
+					/**
+					 * This is just a normal field. Sanitize and save the value.
+					 */
+					$value = $this->wo_meta()->sanitize_meta_input( $allowed_keyvalue, $data[ $this_key ] );
+				} elseif ( isset( $allowed_keyvalue['type'] ) && $allowed_keyvalue['type'] === 'bool' ) {
+					/**
+					 * If this field wasn't in the post, and it's a bool, we'll default to 0 always.
+					 */
+					$value = 0;
+				} else {
+					/**
+					 * If this field wasn't in the post, parse the default value.
+					 */
+					$value = $this->wo_meta()->parse_default( $allowed_keyvalue );
+				}
+
+				$processed_data[ $this_key ] = $value;
+			}
+
+			if ( ! empty( $processed_data ) ) {
+				$sanitized_data[] = $processed_data;
+			}
 		}
 
-		if ( is_numeric( $value ) ) {
-			$value = intval( $value );
-		} elseif ( is_array( $value ) ) {
-			$value = array_map( array( $this, 'sanitize_imported_value' ), $value );
-		} else {
-			$value = sanitize_text_field( $value );
-		}
-
-		return $value;
-	}
-
-	protected function maybe_unserialize_and_sanitize( $key, $value, $unfiltered = array() ) {
-		$value = maybe_unserialize( $value );
-
-		if ( ! in_array( $key, $unfiltered, true ) ) {
-			return $this->sanitize_imported_value( $value );
-		}
-
-		return $value;
+		return $sanitized_data;
 	}
 
 	protected function deprefix_key( $key ) {
@@ -170,7 +263,7 @@ class Import extends AdminDt {
 
 			// The ad IDs won't match up, so we update this later.
 			$do_not_copy_meta  = array( 'ad_order', 'ad_weights' );
-			$allowed_meta_keys = array_merge( UtilDt::headings( 'groups', false, true, true, false ), $allowed_import_keys );
+			$allowed_meta_keys = array_merge( array_keys( UtilDt::headings( 'groups', false, true, true, false ) ), $allowed_import_keys );
 
 			foreach ( $meta as $meta_key => $meta_value ) {
 				if ( ! in_array( $meta_key, $allowed_meta_keys, true ) ) {
@@ -397,7 +490,7 @@ class Import extends AdminDt {
 		$home_url     = home_url();
 
 		foreach ( $data as $ad ) {
-			$new_post_id = $this->import_post( $ad, AdCommander::posttype_ad(), $do_not_copy, UtilDt::headings( 'ads', false, true, true, false ), $args );
+			$new_post_id = $this->import_post( $ad, AdCommander::posttype_ad(), $do_not_copy, array_keys( UtilDt::headings( 'ads', false, true, true, false ) ), $args );
 
 			if ( $new_post_id ) {
 				$new_post_ids[] = $new_post_id;
@@ -463,7 +556,7 @@ class Import extends AdminDt {
 		$new_post_ids = array();
 
 		foreach ( $data as $ad ) {
-			$new_post_id = $this->import_post( $ad, AdCommander::posttype_placement(), $do_not_copy, UtilDt::headings( 'placements', false, true, true, false ), $args );
+			$new_post_id = $this->import_post( $ad, AdCommander::posttype_placement(), $do_not_copy, array_keys( UtilDt::headings( 'placements', false, true, true, false ) ), $args );
 
 			if ( $new_post_id ) {
 				$new_post_ids[] = $new_post_id;
