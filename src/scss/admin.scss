@@ -71,6 +71,10 @@ $danger: #a4303f;
 	}
 }
 
+.nav-tab-wrapper ~ .notice + .woadmin-form-inner {
+	border-top: 1px solid $wp-border-color;
+}
+
 .adcmdrdt-sub {
 	margin-top: $gutter-width;
 	gap: $gutter-width-half;

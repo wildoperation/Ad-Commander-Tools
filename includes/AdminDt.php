@@ -224,11 +224,13 @@ class AdminDt extends Admin {
 	 */
 	public function tools_page() {
 		$this->sf()->start();
+		$this->sf()->title( __( 'Tools', 'ad-commander-tools' ) );
 
-		$tabs                  = array();
-		$tools['import']       = __( 'Import', 'ad-commander-tools' );
-		$tools['export']       = __( 'Export', 'ad-commander-tools' );
-		$tools['manage_stats'] = __( 'Manage Stats', 'ad-commander-tools' );
+		$tabs                   = array();
+		$tools['import_plugin'] = __( 'Import from Plugin', 'ad-commander-tools' );
+		$tools['import']        = __( 'Import Bundle', 'ad-commander-tools' );
+		$tools['export']        = __( 'Export Bundle', 'ad-commander-tools' );
+		$tools['manage_stats']  = __( 'Manage Stats', 'ad-commander-tools' );
 
 		$admin_url = self::tools_admin_url();
 
@@ -251,6 +253,10 @@ class AdminDt extends Admin {
 			}
 
 			switch ( $tab['key'] ) {
+				case 'adcmdr_import_plugin':
+					$this->import_plugin_page();
+					break;
+
 				case 'adcmdr_export':
 					$this->export_page();
 					break;
@@ -377,6 +383,25 @@ class AdminDt extends Admin {
 
 			$this->form_end();
 		}
+	}
+
+	private function import_plugin_page() {
+		$import_bundle_nonce = $this->nonce_array( 'adcmdr-do_import_plugin', 'import' );
+		?>
+		<h2><?php esc_html_e( 'Import from Plugin', 'ad-commander-tools' ); ?></h2>
+		<?php $this->form_start( 'post', true ); ?>
+		<input type="hidden" name="action" value="<?php echo esc_attr( Util::ns( 'do_import_plugin' ) ); ?>" />
+		<?php
+		$this->nonce_field( $import_bundle_nonce );
+		Html::admin_table_start();
+		?>
+		<tr>
+			<th scope="row"><?php esc_html_e( 'Plugin', 'ad-commander-tools' ); ?></th>
+			<td></td>
+		</tr>
+		<?php
+		Html::admin_table_end();
+		$this->form_end();
 	}
 
 	/**
