@@ -109,6 +109,18 @@ class UtilDt {
 		return $headings;
 	}
 
+	/**
+	 * Plugins that can be imported.
+	 *
+	 * @return array
+	 */
+	public static function importable_plugins() {
+		return array(
+			'adrotate'    => __( 'AdRotate', 'ad-commander-tools' ),
+			'advancedads' => __( 'Advanced Ads', 'ad-commander-tools' ),
+		);
+	}
+
 
 	/**
 	 * Prefix an array of keys with meta namespace.

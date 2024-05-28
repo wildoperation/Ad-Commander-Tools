@@ -394,13 +394,38 @@ class AdminDt extends Admin {
 		<?php
 		$this->nonce_field( $import_bundle_nonce );
 		Html::admin_table_start();
+		$this->sf()->message( __( 'Your plugin must be installed and activated in order to import ads.', 'ad-commander-tools' ) );
 		?>
 		<tr>
-			<th scope="row"><?php esc_html_e( 'Plugin', 'ad-commander-tools' ); ?></th>
-			<td></td>
+			<th scope="row"><?php esc_html_e( 'Plugin to Import', 'ad-commander-tools' ); ?></th>
+			<td>
+				<?php
+				$id = $this->sf()->key( 'plugin_to_import' );
+				$this->sf()->select( $id, UtilDt::importable_plugins(), null, array( 'empty_text' => __( 'Select a plugin', 'ad-commander-tools' ) ) );
+				/* translators: %1$s: anchor tag; %2$s: close anchor tag */
+				$this->sf()->message( sprintf( __( 'If the plugin you would like to import is not listed, please %1$scontact us%2$s to find out if it can be added to the importer.', 'ad-commander-tools' ), '<a href="' . self::support_admin_url() . '">', '</a>' ) );
+				?>
+
+				<div class="adcmdrdt-sub">
+					<?php
+					/* translators: %1$s: line breaks, %2$s: line breaks */
+					$this->info( sprintf( __( 'AdRotate functions a bit diferently than Ad Commander, so we suggest reviewing your ads after import for accuracy. %1$sIf your ad has a banner asset assigned in AdRotate, we will treat your new Ad Commander ad as an Image Ad and attempt to pull the URL from your AdRotate HTML code. If it does not have a banner asset, we will create a Text/Code ad. We will also attempt to remove any AdRotate wildcard tags where applicable. %2$sAll ads will be created in Draft mode for your review.', 'ad-commander-tools' ), '<br /><br />', '<br /><br />' ) );
+					?>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<th scope="row"></th>
+			<td>
+				<div class="adcmdrdt-sub adcmdrdt-sub--divide">
+					<input type="submit" value="<?php echo esc_attr( __( 'Import plugin data now', 'ad-commander-tools' ) ); ?>" class="button button-primary adcmdrdt-submit" /> <span class="adcmdr-loader"></span>
+				</div>
+			</td>
 		</tr>
 		<?php
 		Html::admin_table_end();
+		?>
+		<?php
 		$this->form_end();
 	}
 
