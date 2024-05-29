@@ -156,7 +156,6 @@ class Import extends AdminDt {
 				$meta_keys        = array_keys( UtilDt::headings( 'stats', false, true, true, false ) );
 				$all_allowed_keys = UtilDt::headings( 'stats', true, true, true, false );
 				break;
-
 		}
 
 		/**
@@ -188,7 +187,6 @@ class Import extends AdminDt {
 
 		return $processed;
 	}
-
 
 	/**
 	 * This function sanitizses data in the same way it's sanitized if saved in the WordPress admin.
@@ -313,39 +311,51 @@ class Import extends AdminDt {
 		return $sanitized_data;
 	}
 
+	/**
+	 * Remove the namespace from a key if one exists.
+	 *
+	 * @param string $key Key to deprefix.
+	 *
+	 * @return string
+	 */
 	protected function deprefix_key( $key ) {
 		return substr( $key, 0, 8 ) === '_adcmdr_' ? substr( $key, 8 ) : $key;
 	}
 
-	protected function import_stats( $data, $args ) {
-		if ( ! $data || empty( $data ) ) {
-			return false;
-		}
+	/**
+	 * Import statistics.
+	 *
+	 * @param array $data Data to import.
+	 *
+	 * @return void
+	 */
+	protected function import_stats( $data ) {
+		if ( $data && ! empty( $data ) ) {
+			foreach ( $data as $stat ) {
+				$entry = $stat['item'];
 
-		foreach ( $data as $stat ) {
-			$entry = $stat['item'];
+				if ( ! isset( $this->imported_ad_ids[ 'imported_post_id_' . $entry['ad_id'] ] ) ) {
+					continue;
+				}
 
-			if ( ! isset( $this->imported_ad_ids[ 'imported_post_id_' . $entry['ad_id'] ] ) ) {
-				continue;
+				$new_ad_id = $this->imported_ad_ids[ 'imported_post_id_' . $entry['ad_id'] ];
+
+				if ( $entry['stat_type'] === 'impression' ) {
+					$table = TrackingLocal::get_tracking_table( 'impressions' );
+				} elseif ( $entry['stat_type'] === 'click' ) {
+					$table = TrackingLocal::get_tracking_table( 'clicks' );
+				}
+
+				$args = array(
+					$table,
+					$new_ad_id,
+					$entry['timestamp'],
+					$entry['count'],
+				);
+
+				global $wpdb;
+				$wpdb->query( $wpdb->prepare( 'INSERT INTO %i (`ad_id`, `timestamp`, `count`) VALUES (%d, %d, %d) ON DUPLICATE KEY UPDATE ad_id=ad_id', $args ) );
 			}
-
-			$new_ad_id = $this->imported_ad_ids[ 'imported_post_id_' . $entry['ad_id'] ];
-
-			if ( $entry['stat_type'] === 'impression' ) {
-				$table = TrackingLocal::get_tracking_table( 'impressions' );
-			} elseif ( $entry['stat_type'] === 'click' ) {
-				$table = TrackingLocal::get_tracking_table( 'clicks' );
-			}
-
-			$args = array(
-				$table,
-				$new_ad_id,
-				$entry['timestamp'],
-				$entry['count'],
-			);
-
-			global $wpdb;
-			$wpdb->query( $wpdb->prepare( 'INSERT INTO %i (`ad_id`, `timestamp`, `count`) VALUES (%d, %d, %d) ON DUPLICATE KEY UPDATE ad_id=ad_id', $args ) );
 		}
 	}
 
@@ -356,7 +366,7 @@ class Import extends AdminDt {
 	 *
 	 * @return void|bool
 	 */
-	protected function import_groups( $data, $args = array() ) {
+	protected function import_groups( $data ) {
 		if ( ! $data || empty( $data ) ) {
 			return false;
 		}
@@ -443,11 +453,14 @@ class Import extends AdminDt {
 		}
 	}
 
+	/**
+	 * Update group meta with newly imported post IDs.
+	 *
+	 * @return void
+	 */
 	private function import_group_post_relationships() {
 
 		if ( ! empty( $this->group_meta_after_ads ) ) {
-			// wo_log( $this->group_meta_after_ads );
-
 			$key_is_post_id = array( 'ad_weights' );
 
 			foreach ( $this->group_meta_after_ads as $term_id => $meta ) {
@@ -498,6 +511,7 @@ class Import extends AdminDt {
 	 * @param string $post_type The post type to import.
 	 * @param array  $do_not_copy Post keys and meta keys to skip.
 	 * @param array  $allowed_keys The allowed keys for this post type.
+	 * @param array  $args Optional arguments used during import.
 	 *
 	 * @return int|bool
 	 */
@@ -607,6 +621,7 @@ class Import extends AdminDt {
 	 * Import ads. Assumes data has already been processed, formatted, and sanitized.
 	 *
 	 * @param array $data Array of posts and post meta.
+	 * @param array $args Optional arguments used during import.
 	 *
 	 * @return void|bool
 	 */
@@ -674,6 +689,7 @@ class Import extends AdminDt {
 	 * Import ads. Assumes data has already been processed, formatted, and sanitized.
 	 *
 	 * @param array $data Array of posts and post meta.
+	 * @param array $args Optional arguments used during import.
 	 *
 	 * @return void|bool
 	 */

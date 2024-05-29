@@ -15,6 +15,16 @@ class AdCommanderDt {
 	}
 
 	/**
+	 * Current version of AdCommanderPro.
+	 *
+	 * @return string
+	 */
+	public static function required_adcmdr_version() {
+		// TODO: Update this at launch to the current version of Ad Commander.
+		return '1.0.7';
+	}
+
+	/**
 	 * The path to the assets directory.
 	 *
 	 * @return string

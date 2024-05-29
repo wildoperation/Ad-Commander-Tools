@@ -2,7 +2,7 @@
 namespace ADCmdr;
 
 /**
- * Admin functionality for Ad Commander Data Tools
+ * Admin functionality for Ad Commander Tools
  */
 class AdminDt extends Admin {
 
@@ -165,7 +165,7 @@ class AdminDt extends Admin {
 	}
 
 	/**
-	 * The admin_url for the support page.
+	 * The admin_url for the tools page.
 	 *
 	 * @return string
 	 */
@@ -192,7 +192,7 @@ class AdminDt extends Admin {
 			self::admin_slug(),
 			self::tools_title(),
 			self::tools_title(),
-			AdCommander::capability(), // TODO: 'manage_options'?
+			AdCommander::capability(),
 			self::admin_slug( 'tools' ),
 			array( $this, 'tools_page' ),
 			25
@@ -275,6 +275,9 @@ class AdminDt extends Admin {
 	/**
 	 * Start a form tag.
 	 *
+	 * @param string $method Get or post method.
+	 * @param bool   $formdata Whether to accept file uploads.
+	 *
 	 * @return void
 	 */
 	private function form_start( $method = 'post', $formdata = false ) {
@@ -313,27 +316,23 @@ class AdminDt extends Admin {
 
 			Html::admin_table_start();
 			?>
-			<?php
-			/*
-			<tr>
+		<tr>
 			<th scope="row"><?php esc_html_e( 'Include stats', 'ad-commander-tools' ); ?></th>
 			<td>
 				<?php
 				$id = $this->sf()->key( 'export_include_stats' );
-				$this->sf()->checkbox( $id, 0 );
+				$this->sf()->checkbox( $id, 1 );
 				$this->sf()->label( $id, __( 'Include statistics in export bundle.', 'ad-commander-tools' ) );
 				?>
 			</td>
-			</tr>
-			*/
-			?>
+		</tr>
 		<tr>
 			<th scope="row"><?php esc_html_e( 'Export bundle', 'ad-commander-tools' ); ?></th>
 			<td>
 				<input type="submit" value="<?php echo esc_attr( __( 'Create export bundle now', 'ad-commander-tools' ) ); ?>" class="button button-primary adcmdrdt-submit" /> <span class="adcmdr-loader"></span>
 				<?php
 				/* translators: %1$s: line break tag */
-				$this->sf()->message( sprintf( esc_html__( 'A bundle will be created with your ads, groups, and placements.%1$sWhen importing this bundle into another site, you can choose which data to import.', 'ad-commander-tools' ), '<br />' ) );
+				$this->sf()->message( sprintf( esc_html__( 'A bundle will be created with your ads, groups, placements, and (optionally) stats.%1$sWhen importing this bundle into another site, you can choose which data to import.', 'ad-commander-tools' ), '<br />' ) );
 				?>
 			</td>
 		</tr>
@@ -380,6 +379,11 @@ class AdminDt extends Admin {
 		}
 	}
 
+	/**
+	 * A select element with the bundle files to import.
+	 *
+	 * @return void
+	 */
 	private function import_bundle_options() {
 		$options = array(
 			'ads'        => __( 'Ads', 'ad-commander-tools' ),
@@ -403,18 +407,28 @@ class AdminDt extends Admin {
 	 * @return void
 	 */
 	private function import_page() {
-		$import_bundle_nonce = $this->nonce_array( 'adcmdr-do_import_bundle', 'import' );
 		?>
 		<h2><?php esc_html_e( 'Import', 'ad-commander-tools' ); ?></h2>
 		<?php
-			$this->form_start( 'post', true );
+		if ( ! self::allow_unfiltered_html() ) {
+			?>
+			<div class="adcmdr-notification adcmdr-notice-warn">
+				<p>
+					<?php esc_html_e( 'Your user does not have permission to use unfiltered HTML. Scripts and some other HTML will be stripped from Text/Code ads, Rich Content ads, and custom code.', 'ad-commander' ); ?>
+					<?php Doc::doc_link( 'unfiltered_html' ); ?>
+				</p>
+			</div>
+			<?php
+		}
+
+		$import_bundle_nonce = $this->nonce_array( 'adcmdr-do_import_bundle', 'import' );
+		$this->form_start( 'post', true );
 		?>
 		<input type="hidden" name="action" value="<?php echo esc_attr( Util::ns( 'do_import_bundle' ) ); ?>" />
-			<?php
-			$this->nonce_field( $import_bundle_nonce );
-
-			Html::admin_table_start();
-			?>
+		<?php
+		$this->nonce_field( $import_bundle_nonce );
+		Html::admin_table_start();
+		?>
 		<tr>
 			<th scope="row"><?php esc_html_e( 'Import bundle', 'ad-commander-tools' ); ?></th>
 			<td>
@@ -452,7 +466,6 @@ class AdminDt extends Admin {
 		</tr>
 		<?php
 		Html::admin_table_end();
-
 		$this->form_end();
 	}
 
@@ -462,5 +475,83 @@ class AdminDt extends Admin {
 	 * @return void
 	 */
 	private function manage_stats_page() {
+		$this->manage_stats_delete_rogue();
+		$this->manage_stats_delete_all();
+	}
+
+	/**
+	 * Delete rogue stats section.
+	 *
+	 * @return void
+	 */
+	private function manage_stats_delete_rogue() {
+		?>
+		<h2><?php esc_html_e( 'Delete rogue stats', 'ad-commander-tools' ); ?></h2>
+		<?php
+		$this->sf()->message( __( 'A stat is considered rogue if an ad no longer exists. Stats for ads in the trash are not considered rogue. The ads must be completely deleted.', 'ad-commander-tools' ) );
+
+		$rogue = ManageStats::find_rogue_entries();
+		/* translators: %1$s the total number of query results */
+		$this->sf()->message( '<em>' . sprintf( __( 'You currently have %1$s rogue stat entries.', 'ad-commander-tools' ), count( $rogue['impressions'] ) + count( $rogue['clicks'] ) ) . '</em>' );
+
+		$delete_all_stats_nonce = $this->nonce_array( 'adcmdr-do_delete_rogue_stats', 'import' );
+		$this->form_start( 'post', true );
+		?>
+		<input type="hidden" name="action" value="<?php echo esc_attr( Util::ns( 'do_delete_rogue_stats' ) ); ?>" />
+		<?php
+		$this->nonce_field( $delete_all_stats_nonce );
+		Html::admin_table_start();
+		?>
+		<tr>
+			<th scope="row"><?php esc_html_e( 'Confirm delete', 'ad-commander-tools' ); ?></th>
+			<td>
+				<?php
+				$id = $this->sf()->key( 'confirm_delete_rogue_stats' );
+				$this->sf()->checkbox( $id, 0 );
+				$this->sf()->label( $id, __( 'I understand I am deleting statistics for ads that no longer exist. These stats will no longer be available in Reports. This action cannot be undone.', 'ad-commander-tools' ) );
+				?>
+				<div class="adcmdrdt-sub">
+					<input type="submit" value="<?php echo esc_attr( __( 'Delete rogue statistics', 'ad-commander-tools' ) ); ?>" class="button button-primary adcmdrdt-submit" /> <span class="adcmdr-loader"></span>
+				</div>
+			</td>
+		</tr>
+		<?php
+		Html::admin_table_end();
+		$this->form_end();
+	}
+
+	/**
+	 * Delete all stats section.
+	 *
+	 * @return void
+	 */
+	private function manage_stats_delete_all() {
+		?>
+		<h2><?php esc_html_e( 'Delete all stats', 'ad-commander-tools' ); ?></h2>
+		<?php
+		$delete_all_stats_nonce = $this->nonce_array( 'adcmdr-do_delete_all_stats', 'import' );
+		$this->form_start( 'post', true );
+		?>
+		<input type="hidden" name="action" value="<?php echo esc_attr( Util::ns( 'do_delete_all_stats' ) ); ?>" />
+		<?php
+		$this->nonce_field( $delete_all_stats_nonce );
+		Html::admin_table_start();
+		?>
+		<tr>
+			<th scope="row"><?php esc_html_e( 'Confirm delete', 'ad-commander-tools' ); ?></th>
+			<td>
+				<?php
+				$id = $this->sf()->key( 'confirm_delete_all_stats' );
+				$this->sf()->checkbox( $id, 0 );
+				$this->sf()->label( $id, __( 'I understand I am deleting ads statistics for all ads and that this action cannot be undone.', 'ad-commander-tools' ) );
+				?>
+				<div class="adcmdrdt-sub">
+					<input type="submit" value="<?php echo esc_attr( __( 'Delete all statistics', 'ad-commander-tools' ) ); ?>" class="button button-primary adcmdrdt-submit" /> <span class="adcmdr-loader"></span>
+				</div>
+			</td>
+		</tr>
+		<?php
+		Html::admin_table_end();
+		$this->form_end();
 	}
 }

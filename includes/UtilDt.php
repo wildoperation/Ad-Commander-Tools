@@ -135,4 +135,13 @@ class UtilDt {
 
 		return $keyed;
 	}
+
+	/**
+	 * Compare required and current versions of Ad Commander.
+	 *
+	 * @return bool
+	 */
+	public static function needs_adcmdr_upgrade() {
+		return version_compare( AdCommanderDt::required_adcmdr_version(), AdCommander::version(), '>' );
+	}
 }

@@ -48,7 +48,7 @@ add_action(
 					<p>
 					<?php
 						/* translators: %1$s: anchor tag with URL, %2$s: close anchor tag */
-						printf( esc_html__( 'Ad Commander Data Tools requires the %1$sAd Commander plugin%2$s. Please enable Ad Commander to continue.', 'ad-commander-tools' ), '<a href="https://wordpress.org/plugins/ad-commander/" target="_blank">', '</a>' );
+						printf( esc_html__( 'Ad Commander Tools requires the %1$sAd Commander plugin%2$s. Please enable Ad Commander to continue.', 'ad-commander-tools' ), '<a href="https://wordpress.org/plugins/ad-commander/" target="_blank">', '</a>' );
 					?>
 					</p>
 				</div>
@@ -64,7 +64,44 @@ add_action(
 						function () {
 							ADCmdr\AdCommanderDt::plugin_list_notice(
 								/* translators: %1$s: anchor tag with URL, %2$s: close anchor tag */
-								sprintf( esc_html__( 'Ad Commander Data Tools requires the %1$sAd Commander plugin%2$s. Please enable Ad Commander to continue.', 'ad-commander-tools' ), '<a href="https://wordpress.org/plugins/ad-commander/" target="_blank">', '</a>' )
+								sprintf( esc_html__( 'Ad Commander Tools requires the %1$sAd Commander plugin%2$s. Please enable Ad Commander to continue.', 'ad-commander-tools' ), '<a href="https://wordpress.org/plugins/ad-commander/" target="_blank">', '</a>' )
+							);
+						},
+						10,
+						2
+					);
+				}
+			);
+
+			return false;
+		}
+
+		if ( ADCmdr\UtilDt::needs_adcmdr_upgrade() ) {
+			add_action(
+				'admin_notices',
+				function () {
+					?>
+				<div class="notice notice-error">
+					<p>
+					<?php
+						/* translators: %1$s: The required version of Ad Commander */
+						printf( esc_html__( 'Ad Commander Tools requires version %1$s or greater of Ad Commander. Please upgrade Ad Commander continue.', 'ad-commander-tools' ), AdCmdr\AdCommanderDt::required_adcmdr_version() );
+					?>
+					</p>
+				</div>
+					<?php
+				}
+			);
+
+			add_action(
+				'load-plugins.php',
+				function () {
+					add_action(
+						'after_plugin_row_' . ADCMDRDT_PLUGIN_BASENAME,
+						function () {
+							ADCmdr\AdCommanderDt::plugin_list_notice(
+								/* translators: %1$s: The required version of Ad Commander */
+								sprintf( esc_html__( 'Ad Commander Tools requires version %1$s or greater of Ad Commander. Please upgrade Ad Commander continue.', 'ad-commander-tools' ), AdCmdr\AdCommanderDt::required_adcmdr_version() )
 							);
 						},
 						10,

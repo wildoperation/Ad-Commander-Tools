@@ -142,7 +142,7 @@ class Export extends AdminDt {
 	/**
 	 * Perform an export.
 	 *
-	 * @return void
+	 * @return void|bool
 	 */
 	public function do_export() {
 		$export_nonce = $this->nonce_array( 'adcmdr-do_export', 'export' );
@@ -162,16 +162,18 @@ class Export extends AdminDt {
 		$ads        = $this->process_ads();
 		$groups     = $this->process_groups();
 		$placements = $this->process_placements();
-		$stats      = $this->process_stats( $ads );
 
-		$this->create_bundle(
-			array(
-				'adcmdr_ads'        => $ads,
-				'adcmdr_groups'     => $groups,
-				'adcmdr_placements' => $placements,
-				'adcmdr_stats'      => $stats,
-			)
+		$bundles = array(
+			'adcmdr_ads'        => $ads,
+			'adcmdr_groups'     => $groups,
+			'adcmdr_placements' => $placements,
 		);
+
+		if ( isset( $_REQUEST['adcmdr_export_include_stats'] ) && Util::truthy( sanitize_text_field( wp_unslash( $_REQUEST['adcmdr_export_include_stats'] ) ) ) ) {
+			$bundles['adcmdr_stats'] = $this->process_stats( $ads );
+		}
+
+		$this->create_bundle( $bundles );
 
 		$url = admin_url( self::admin_path( 'tools' ) );
 		$url = add_query_arg(
@@ -230,6 +232,11 @@ class Export extends AdminDt {
 		$csvs = array();
 
 		foreach ( $bundle as $file => $data ) {
+			if ( ! isset( $data['headings'] ) || ! $data['headings'] ) {
+				wo_log( 'no headings - ' . $file );
+				continue;
+			}
+
 			$filename  = sanitize_title( $file . $this->export_suffix() ) . '.csv';
 			$full_path = $dir . $filename;
 
@@ -444,6 +451,15 @@ class Export extends AdminDt {
 		);
 	}
 
+	/**
+	 * Process an individual stat (impression or click).
+	 *
+	 * @param array  $this_stat The individual stat.
+	 * @param object $stat The stat to process.
+	 * @param array  $headings The CSV headings/keys.
+	 *
+	 * @return array
+	 */
 	private function process_stat( $this_stat, $stat, $headings ) {
 		foreach ( $headings as $heading ) {
 			if ( isset( $this_stat[ $heading ] ) ) {
@@ -462,17 +478,31 @@ class Export extends AdminDt {
 		return $this_stat;
 	}
 
+	/**
+	 * Process all stats.
+	 *
+	 * @param array $ads The ads that were exported in this bundle.
+	 *
+	 * @return array
+	 */
 	private function process_stats( $ads ) {
 
-		if ( empty( $ads['rows'] ) ) {
-			return array();
+		$headings = array_keys( UtilDt::headings( 'stats' ) );
+
+		if ( ! $ads['rows'] || empty( $ads['rows'] ) ) {
+			return array(
+				'headings' => $headings,
+				'rows'     => array(),
+			);
 		}
 
-		$headings = array_keys( UtilDt::headings( 'stats' ) );
-		$ad_ids   = wp_list_pluck( $ads['rows'], 'ID' );
+		$ad_ids = wp_list_pluck( $ads['rows'], 'ID' );
 
-		if ( empty( $ad_ids ) ) {
-			return array();
+		if ( ! $ad_ids || empty( $ad_ids ) ) {
+			return array(
+				'headings' => $headings,
+				'rows'     => array(),
+			);
 		}
 
 		global $wpdb;

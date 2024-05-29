@@ -16,6 +16,24 @@ jQuery(document).ready(function ($) {
 	}
 
 	/**
+	 * Import bundle options
+	 */
+	const $bundle_opts = $('input[name="adcmdr_import_bundle_options[]"]');
+	if ($bundle_opts.length > 0) {
+		const $bundle_ads = $bundle_opts.filter('[value="ads"]');
+		const $bundle_stats = $bundle_opts.filter('[value="stats"]');
+
+		$bundle_ads.on("change", function () {
+			if ($(this).is(":checked")) {
+				$bundle_stats.attr("disabled", false);
+			} else {
+				$bundle_stats.attr("disabled", true);
+				$bundle_stats.prop("checked", false);
+			}
+		});
+	}
+
+	/**
 	 * Exported bundle list
 	 */
 	const $exported_list = $(".adcmdrdt-export-list");
