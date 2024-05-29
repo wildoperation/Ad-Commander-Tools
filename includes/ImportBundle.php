@@ -139,7 +139,7 @@ class ImportBundle extends Import {
 		$import_bundle_options = array_map( 'sanitize_text_field', wp_unslash( $_REQUEST['adcmdr_import_bundle_options'] ) );
 
 		// Order matters - this is how they will be imported.
-		$all_import_types = array( 'groups', 'ads', 'placements', 'stats' );
+		$all_import_types = $this->all_import_types();
 
 		foreach ( $all_import_types as $import_type ) {
 			if ( ! in_array( $import_type, $import_bundle_options, true ) ) {
@@ -170,89 +170,6 @@ class ImportBundle extends Import {
 		 */
 		$this->cleanup_and_redirect( $import_nonce, $bundle_tmp, $extract_to_dir, false );
 	}
-
-	/**
-	 * Import data by type; Determines which import function to call to process data.
-	 *
-	 * @param string $import_type The type of data we're importing.
-	 * @param array  $data The data to import.
-	 * @param array  $args Additional arguments used during import.
-	 *
-	 * @return void
-	 */
-	private function import_data( $import_type, $data, $args = array() ) {
-		switch ( $import_type ) {
-			case 'groups':
-				$this->import_groups( $this->process( $data, 'groups' ), $args );
-				break;
-
-			case 'ads':
-				$this->import_ads( $this->process( $data, 'ads' ), $args );
-				break;
-
-			case 'placements':
-				$this->import_placements( $this->process( $data, 'placements' ), $args );
-				break;
-		}
-	}
-
-	/**
-	 * Prepare groups for import.
-	 *
-	 * @param array $data The data to prepare.
-	 *
-	 * @return array
-	 */
-	private function process( $data, $type ) {
-		$processed = array();
-
-		switch ( $type ) {
-			case 'groups':
-				$primary_keys     = array_keys( UtilDt::headings( 'groups', true, false, false, false ) );
-				$meta_keys        = array_keys( UtilDt::headings( 'groups', false, true, true, false ) );
-				$all_allowed_keys = UtilDt::headings( 'groups', true, true, true, false );
-				break;
-
-			case 'ads':
-				$primary_keys     = array_keys( UtilDt::headings( 'ads', true, false, false, false ) );
-				$meta_keys        = array_keys( UtilDt::headings( 'ads', false, true, true, false ) );
-				$all_allowed_keys = UtilDt::headings( 'ads', true, true, true, false );
-				break;
-
-			case 'placements':
-				$primary_keys     = array_keys( UtilDt::headings( 'placements', true, false, false, false ) );
-				$meta_keys        = array_keys( UtilDt::headings( 'placements', false, true, true, false ) );
-				$all_allowed_keys = UtilDt::headings( 'placements', true, true, true, false );
-				break;
-		}
-
-		$data = $this->sanitize_data_for_input( $data, $all_allowed_keys );
-
-		foreach ( $data as $item ) {
-			$this_item = array(
-				'item' => array(),
-				'meta' => array(),
-			);
-
-			foreach ( $item as $key => $value ) {
-				$key = $this->deprefix_key( $key );
-
-				if ( in_array( $key, $primary_keys, true ) ) {
-					$this_item['item'][ $key ] = $value;
-					continue;
-				}
-
-				if ( in_array( $key, $meta_keys, true ) ) {
-					$this_item['meta'][ $key ] = $value;
-				}
-			}
-
-			$processed[] = $this_item;
-		}
-
-		return $processed;
-	}
-
 
 	/**
 	 * Find a file with a given string in the filename. Assumes we have already filtered down to accepted filetypes (e.g., .csv)

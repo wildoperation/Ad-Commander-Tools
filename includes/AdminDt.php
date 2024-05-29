@@ -412,6 +412,10 @@ class AdminDt extends Admin {
 					$this->info( sprintf( __( 'AdRotate functions a bit diferently than Ad Commander, so we suggest reviewing your ads after import for accuracy. %1$sIf your ad has a banner asset assigned in AdRotate, we will treat your new Ad Commander ad as an Image Ad and attempt to pull the URL from your AdRotate HTML code. If it does not have a banner asset, we will create a Text/Code ad. We will also attempt to remove any AdRotate wildcard tags where applicable. %2$sAll ads will be created in Draft mode for your review.', 'ad-commander-tools' ), '<br /><br />', '<br /><br />' ) );
 					?>
 				</div>
+
+				<div class="adcmdrdt-sub adcmdrdt-sub--col adcmdrdt-sub--divide">
+					<?php $this->import_bundle_options(); ?>
+				</div>
 			</td>
 		</tr>
 		<tr>
@@ -427,6 +431,23 @@ class AdminDt extends Admin {
 		?>
 		<?php
 		$this->form_end();
+	}
+
+	private function import_bundle_options() {
+		$options = array(
+			'ads'        => __( 'Ads', 'ad-commander-tools' ),
+			'groups'     => __( 'Groups', 'ad-commander-tools' ),
+			'placements' => __( 'Placements', 'ad-commander-tools' ),
+			'stats'      => __( 'Stats', 'ad-commander-tools' ),
+		);
+
+		$id = $this->sf()->key( 'import_bundle_options' );
+		$this->sf()->label( $id, __( 'Import the following data (if present in the bundle file):', 'ad-commander-tools' ) );
+		$this->sf()->checkgroup(
+			$id,
+			$options,
+			array_filter( array_keys( $options ), fn( $option ) => $option !== 'stats' )
+		);
 	}
 
 	/**
@@ -459,22 +480,7 @@ class AdminDt extends Admin {
 				?>
 				</div>
 				<div class="adcmdrdt-sub adcmdrdt-sub--col adcmdrdt-sub--divide">
-				<?php
-				$options = array(
-					'ads'        => __( 'Ads', 'ad-commander-tools' ),
-					'groups'     => __( 'Groups', 'ad-commander-tools' ),
-					'placements' => __( 'Placements', 'ad-commander-tools' ),
-					'stats'      => __( 'Stats', 'ad-commander-tools' ),
-				);
-
-				$id = $this->sf()->key( 'import_bundle_options' );
-				$this->sf()->label( $id, __( 'Import the following data (if present in the bundle file):', 'ad-commander-tools' ) );
-				$this->sf()->checkgroup(
-					$id,
-					$options,
-					array_filter( array_keys( $options ), fn( $option ) => $option !== 'stats' )
-				);
-				?>
+					<?php $this->import_bundle_options(); ?>
 				</div>
 				<div class="adcmdrdt-sub adcmdrdt-sub--col">
 				<?php

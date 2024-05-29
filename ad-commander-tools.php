@@ -93,6 +93,7 @@ add_action(
 			'ADCmdr\AdminDt',
 			'ADCmdr\Export',
 			'ADCmdr\ImportBundle',
+			'ADCmdr\ImportPlugin',
 		);
 
 		foreach ( $classes as $class ) {
