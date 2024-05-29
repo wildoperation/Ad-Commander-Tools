@@ -74,7 +74,7 @@ class Import extends AdminDt {
 				'action'       => ( $success ) ? Util::ns( 'import_success' ) : Util::ns( 'import_fail' ),
 				'import_type'  => $type,
 				$nonce['name'] => wp_create_nonce( $nonce['action'] ),
-				'tab'          => ( $type === 'plugin' ) ? 'adcmdr_import_plugin' : 'adcmdr_import',
+				'tab'          => 'adcmdr_import',
 			),
 			$url
 		);
