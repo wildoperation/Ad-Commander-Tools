@@ -49,9 +49,7 @@ class UtilDt {
 				'featured_image_url' => array( 'type' => 'str' ),
 				'thumbnail_id'       => array( 'type' => 'int' ),
 			);
-		}
-
-		if ( $type === 'groups' ) {
+		} elseif ( $type === 'groups' ) {
 			$primary = array(
 				'term_id' => array( 'type' => 'int' ),
 				'name'    => array( 'type' => 'str' ),
@@ -62,9 +60,7 @@ class UtilDt {
 				'source'      => array( 'type' => 'str' ),
 				'source_site' => array( 'type' => 'str' ),
 			);
-		}
-
-		if ( $type === 'placements' ) {
+		} elseif ( $type === 'placements' ) {
 			$primary = array(
 				'ID'                => array( 'type' => 'int' ),
 				'post_status'       => array(
@@ -84,6 +80,18 @@ class UtilDt {
 				),
 			);
 			$meta    = PlacementPostMeta::post_meta_keys();
+			$extra   = array(
+				'source'      => array( 'type' => 'str' ),
+				'source_site' => array( 'type' => 'str' ),
+			);
+		} elseif ( $type === 'stats' ) {
+			$primary = array(
+				'timestamp' => array( 'type' => 'timestamp' ),
+				'ad_id'     => array( 'type' => 'int' ),
+				'count'     => array( 'type' => 'int' ),
+				'stat_type' => array( 'type' => 'str' ),
+			);
+			$meta    = array();
 			$extra   = array(
 				'source'      => array( 'type' => 'str' ),
 				'source_site' => array( 'type' => 'str' ),

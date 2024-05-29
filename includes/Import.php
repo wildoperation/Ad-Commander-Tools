@@ -114,6 +114,10 @@ class Import extends AdminDt {
 			case 'placements':
 				$this->import_placements( $this->process( $data, 'placements' ), $args );
 				break;
+
+			case 'stats':
+				$this->import_stats( $this->process( $data, 'stats' ), $args );
+				break;
 		}
 	}
 
@@ -146,6 +150,13 @@ class Import extends AdminDt {
 				$meta_keys        = array_keys( UtilDt::headings( 'placements', false, true, true, false ) );
 				$all_allowed_keys = UtilDt::headings( 'placements', true, true, true, false );
 				break;
+
+			case 'stats':
+				$primary_keys     = array_keys( UtilDt::headings( 'stats', true, false, false, false ) );
+				$meta_keys        = array_keys( UtilDt::headings( 'stats', false, true, true, false ) );
+				$all_allowed_keys = UtilDt::headings( 'stats', true, true, true, false );
+				break;
+
 		}
 
 		/**
@@ -304,6 +315,38 @@ class Import extends AdminDt {
 
 	protected function deprefix_key( $key ) {
 		return substr( $key, 0, 8 ) === '_adcmdr_' ? substr( $key, 8 ) : $key;
+	}
+
+	protected function import_stats( $data, $args ) {
+		if ( ! $data || empty( $data ) ) {
+			return false;
+		}
+
+		foreach ( $data as $stat ) {
+			$entry = $stat['item'];
+
+			if ( ! isset( $this->imported_ad_ids[ 'imported_post_id_' . $entry['ad_id'] ] ) ) {
+				continue;
+			}
+
+			$new_ad_id = $this->imported_ad_ids[ 'imported_post_id_' . $entry['ad_id'] ];
+
+			if ( $entry['stat_type'] === 'impression' ) {
+				$table = TrackingLocal::get_tracking_table( 'impressions' );
+			} elseif ( $entry['stat_type'] === 'click' ) {
+				$table = TrackingLocal::get_tracking_table( 'clicks' );
+			}
+
+			$args = array(
+				$table,
+				$new_ad_id,
+				$entry['timestamp'],
+				$entry['count'],
+			);
+
+			global $wpdb;
+			$wpdb->query( $wpdb->prepare( 'INSERT INTO %i (`ad_id`, `timestamp`, `count`) VALUES (%d, %d, %d) ON DUPLICATE KEY UPDATE ad_id=ad_id', $args ) );
+		}
 	}
 
 	/**

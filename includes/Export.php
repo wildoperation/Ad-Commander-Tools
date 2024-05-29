@@ -162,13 +162,14 @@ class Export extends AdminDt {
 		$ads        = $this->process_ads();
 		$groups     = $this->process_groups();
 		$placements = $this->process_placements();
-		// TODO: Export statistics.
+		$stats      = $this->process_stats( $ads );
 
 		$this->create_bundle(
 			array(
 				'adcmdr_ads'        => $ads,
 				'adcmdr_groups'     => $groups,
 				'adcmdr_placements' => $placements,
+				'adcmdr_stats'      => $stats,
 			)
 		);
 
@@ -440,6 +441,85 @@ class Export extends AdminDt {
 		return array(
 			'headings' => $headings,
 			'rows'     => $processed_placements,
+		);
+	}
+
+	private function process_stat( $this_stat, $stat, $headings ) {
+		foreach ( $headings as $heading ) {
+			if ( isset( $this_stat[ $heading ] ) ) {
+				continue;
+			}
+
+			$value = '';
+
+			if ( isset( $stat->$heading ) ) {
+				$value = $stat->$heading;
+			}
+
+			$this_stat[ $heading ] = $value;
+		}
+
+		return $this_stat;
+	}
+
+	private function process_stats( $ads ) {
+
+		if ( empty( $ads['rows'] ) ) {
+			return array();
+		}
+
+		$headings = array_keys( UtilDt::headings( 'stats' ) );
+		$ad_ids   = wp_list_pluck( $ads['rows'], 'ID' );
+
+		if ( empty( $ad_ids ) ) {
+			return array();
+		}
+
+		global $wpdb;
+
+		$home_url        = home_url();
+		$processed_stats = array();
+
+		$ad_ids             = array_map( 'absint', $ad_ids );
+		$ad_ids_placeholder = implode( ', ', array_fill( 0, count( $ad_ids ), '%d' ) );
+
+		$args        = array( TrackingLocal::get_tracking_table( 'impressions' ) );
+		$impressions = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM %i WHERE ad_id IN ($ad_ids_placeholder)", array_merge( $args, $ad_ids ) ) );
+
+		$args   = array( TrackingLocal::get_tracking_table( 'clicks' ) );
+		$clicks = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM %i WHERE ad_id IN ($ad_ids_placeholder)", array_merge( $args, $ad_ids ) ) );
+
+		if ( ! empty( $impressions ) ) {
+			foreach ( $impressions as $impression ) {
+				$processed_stats[] = $this->process_stat(
+					array(
+						'source'      => 'adcmdr_export',
+						'source_site' => $home_url,
+						'stat_type'   => 'impression',
+					),
+					$impression,
+					$headings
+				);
+			}
+		}
+
+		if ( ! empty( $clicks ) ) {
+			foreach ( $clicks as $click ) {
+				$processed_stats[] = $this->process_stat(
+					array(
+						'source'      => 'adcmdr_export',
+						'source_site' => $home_url,
+						'stat_type'   => 'click',
+					),
+					$click,
+					$headings
+				);
+			}
+		}
+
+		return array(
+			'headings' => $headings,
+			'rows'     => $processed_stats,
 		);
 	}
 
