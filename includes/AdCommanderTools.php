@@ -20,8 +20,7 @@ class AdCommanderTools {
 	 * @return string
 	 */
 	public static function required_adcmdr_version() {
-		// TODO: Update this at launch to the current version of Ad Commander.
-		return '1.0.7';
+		return '1.0.8';
 	}
 
 	/**

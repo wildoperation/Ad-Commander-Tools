@@ -13,9 +13,9 @@ Add-on for Ad Commander that allows you to import, export, and manage ad statist
 
 == Description ==
 
-This plugin is an add-on for [Ad Commander](https://wordpress.org/plugins/ad-commander/) and requires Ad Commander to function. 
+This plugin is an add-on for [Ad Commander](https://wordpress.org/plugins/ad-commander/) and requires Ad Commander to function. It provides functionality that would not be used by most Ad Commander users on a regular basis.
 
-Export your ads, groups, placements, and stats into a bundle. Import bundles into other sites. Manage your statistics.
+With Ad Commander Tools you can export your ads, groups, placements, and stats into a bundle, import bundles into other sites, and manage your ad statistics.
 
 * Export Ad Commander content with or with statistics
 * Selectively import ads, groups, placements, stats into Ad Commander via CSVs

@@ -2,7 +2,7 @@
 /**
  * Plugin Name:     Ad Commander Tools
  * Plugin URI:      https://wpadcommander.com
- * Description:     Import, export, and data management tools for Ad Commander.
+ * Description:     Import, export, and stat management tools for Ad Commander.
  * Version:         1.0.0
  * Author:          Wild Operation
  * Author URI:      https://wildoperation.com
@@ -11,7 +11,7 @@
  * Text Domain:     ad-commander-tools
  *
  * @package WordPress
- * @subpackage Import, export, and data management tools for Ad Commander.
+ * @subpackage Import, export, and stat management tools for Ad Commander.
  * @since 1.0.0
  * @version 1.0.0
  */
@@ -85,7 +85,7 @@ add_action(
 					<p>
 					<?php
 						/* translators: %1$s: The required version of Ad Commander */
-						printf( esc_html__( 'Ad Commander Tools requires version %1$s or greater of Ad Commander. Please upgrade Ad Commander continue.', 'ad-commander-tools' ), AdCmdr\AdCommanderTools::required_adcmdr_version() );
+						echo esc_html( sprintf( __( 'Ad Commander Tools requires version %1$s or greater of Ad Commander. Please upgrade Ad Commander continue.', 'ad-commander-tools' ), AdCmdr\AdCommanderTools::required_adcmdr_version() ) );
 					?>
 					</p>
 				</div>

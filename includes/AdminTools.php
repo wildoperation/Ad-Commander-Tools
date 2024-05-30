@@ -34,19 +34,6 @@ class AdminTools extends Admin {
 			$key_underscore = self::_key( $key );
 			add_action( 'wp_ajax_' . $this->action_string( $key ), array( $this, 'action_' . $key_underscore ) );
 		}
-
-		/**
-		 * TODO: Remove later
-		 */
-		if ( WP_DEBUG === true ) {
-			add_filter(
-				'adcmdr_dt_import_featured_images',
-				function () {
-					// return false;
-					return true;
-				}
-			);
-		}
 	}
 
 	/**
