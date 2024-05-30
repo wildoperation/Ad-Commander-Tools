@@ -6,12 +6,16 @@ use ADCmdr\Vendor\WOAdminFramework\WOMeta;
 /**
  * Shared utility functionality
  */
-class UtilDt {
+class UtilTools {
 
 	/**
 	 * Allowed CSV headings for import and export
 	 *
 	 * @param string $type The type of CSV file.
+	 * @param bool   $include_primary Whether to include primary headings.
+	 * @param bool   $include_meta Whether to include meta headings.
+	 * @param bool   $include_extra Whether to include extra headings.
+	 * @param bool   $prefix_meta_keys Whether to prefix the meta keys.
 	 *
 	 * @return array
 	 */
@@ -142,6 +146,6 @@ class UtilDt {
 	 * @return bool
 	 */
 	public static function needs_adcmdr_upgrade() {
-		return version_compare( AdCommanderDt::required_adcmdr_version(), AdCommander::version(), '>' );
+		return version_compare( AdCommanderTools::required_adcmdr_version(), AdCommander::version(), '>' );
 	}
 }

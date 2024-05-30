@@ -25,6 +25,7 @@ class Filesystem {
 
 		return self::$instance;
 	}
+
 	/**
 	 * Set the WordPress filesystem method.
 	 *
@@ -76,8 +77,7 @@ class Filesystem {
 
 		/**
 		 * TODO: Consider creating .htaccess deny file
-		 *
-		 * TODO: How does this work with multisite?
+		 * TODO: Does this work with multisite?
 		 */
 
 		if ( ! $this->init_wp_filesystem() ) {

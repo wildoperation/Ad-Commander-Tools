@@ -5,6 +5,7 @@ namespace ADCmdr;
  * Import functionality for bundle uploads
  */
 class ImportBundle extends Import {
+
 	/**
 	 * Hooks
 	 */

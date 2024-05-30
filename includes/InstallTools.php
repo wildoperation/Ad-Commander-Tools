@@ -4,7 +4,7 @@ namespace ADCmdr;
 /**
  * Class for handling various tasks during activation, updating, etc.
  */
-class InstallDt {
+class InstallTools {
 
 	/**
 	 * Fired on plugin activation.
@@ -23,7 +23,7 @@ class InstallDt {
 	 * @return void
 	 */
 	public static function set_dbversion() {
-		Options::instance()->update( 'version_dt', AdCommanderDt::version() );
+		Options::instance()->update( 'version_dt', AdCommanderTools::version() );
 	}
 
 	/**
@@ -32,7 +32,7 @@ class InstallDt {
 	 * @return void
 	 */
 	public static function maybe_update() {
-		if ( ! wp_doing_ajax() && Util::get_dbversion( 'version_dt' ) !== AdCommanderDt::version() ) {
+		if ( ! wp_doing_ajax() && Util::get_dbversion( 'version_dt' ) !== AdCommanderTools::version() ) {
 			self::update();
 		}
 	}

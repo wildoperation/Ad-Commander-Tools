@@ -62,7 +62,7 @@ add_action(
 					add_action(
 						'after_plugin_row_' . ADCMDRDT_PLUGIN_BASENAME,
 						function () {
-							ADCmdr\AdCommanderDt::plugin_list_notice(
+							ADCmdr\AdCommanderTools::plugin_list_notice(
 								/* translators: %1$s: anchor tag with URL, %2$s: close anchor tag */
 								sprintf( esc_html__( 'Ad Commander Tools requires the %1$sAd Commander plugin%2$s. Please enable Ad Commander to continue.', 'ad-commander-tools' ), '<a href="https://wordpress.org/plugins/ad-commander/" target="_blank">', '</a>' )
 							);
@@ -76,7 +76,7 @@ add_action(
 			return false;
 		}
 
-		if ( ADCmdr\UtilDt::needs_adcmdr_upgrade() ) {
+		if ( ADCmdr\UtilTools::needs_adcmdr_upgrade() ) {
 			add_action(
 				'admin_notices',
 				function () {
@@ -85,7 +85,7 @@ add_action(
 					<p>
 					<?php
 						/* translators: %1$s: The required version of Ad Commander */
-						printf( esc_html__( 'Ad Commander Tools requires version %1$s or greater of Ad Commander. Please upgrade Ad Commander continue.', 'ad-commander-tools' ), AdCmdr\AdCommanderDt::required_adcmdr_version() );
+						printf( esc_html__( 'Ad Commander Tools requires version %1$s or greater of Ad Commander. Please upgrade Ad Commander continue.', 'ad-commander-tools' ), AdCmdr\AdCommanderTools::required_adcmdr_version() );
 					?>
 					</p>
 				</div>
@@ -99,9 +99,9 @@ add_action(
 					add_action(
 						'after_plugin_row_' . ADCMDRDT_PLUGIN_BASENAME,
 						function () {
-							ADCmdr\AdCommanderDt::plugin_list_notice(
+							ADCmdr\AdCommanderTools::plugin_list_notice(
 								/* translators: %1$s: The required version of Ad Commander */
-								sprintf( esc_html__( 'Ad Commander Tools requires version %1$s or greater of Ad Commander. Please upgrade Ad Commander continue.', 'ad-commander-tools' ), AdCmdr\AdCommanderDt::required_adcmdr_version() )
+								sprintf( esc_html__( 'Ad Commander Tools requires version %1$s or greater of Ad Commander. Please upgrade Ad Commander continue.', 'ad-commander-tools' ), AdCmdr\AdCommanderTools::required_adcmdr_version() )
 							);
 						},
 						10,
@@ -121,15 +121,16 @@ add_action(
 		/**
 		 * Has the plugin version updated?
 		 */
-		ADCmdr\InstallDt::maybe_update();
+		ADCmdr\InstallTools::maybe_update();
 
 		/**
 		 * Initiate classes and their hooks.
 		 */
 		$classes = array(
-			'ADCmdr\AdminDt',
+			'ADCmdr\AdminTools',
 			'ADCmdr\Export',
 			'ADCmdr\ImportBundle',
+			'ADCmdr\StatsDelete',
 		);
 
 		foreach ( $classes as $class ) {

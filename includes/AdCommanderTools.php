@@ -4,7 +4,7 @@ namespace ADCmdr;
 /**
  * Misc data used throughout this plugin.
  */
-class AdCommanderDt {
+class AdCommanderTools {
 	/**
 	 * Current version of AdCommanderPro.
 	 *

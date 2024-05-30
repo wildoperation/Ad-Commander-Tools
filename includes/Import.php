@@ -7,7 +7,7 @@ use ADCmdr\Vendor\WOAdminFramework\WOUtilities;
 /**
  * Import functionality
  */
-class Import extends AdminDt {
+class Import extends AdminTools {
 
 	/**
 	 * A unique ID for the current import.
@@ -134,27 +134,27 @@ class Import extends AdminDt {
 
 		switch ( $type ) {
 			case 'groups':
-				$primary_keys     = array_keys( UtilDt::headings( 'groups', true, false, false, false ) );
-				$meta_keys        = array_keys( UtilDt::headings( 'groups', false, true, true, false ) );
-				$all_allowed_keys = UtilDt::headings( 'groups', true, true, true, false );
+				$primary_keys     = array_keys( UtilTools::headings( 'groups', true, false, false, false ) );
+				$meta_keys        = array_keys( UtilTools::headings( 'groups', false, true, true, false ) );
+				$all_allowed_keys = UtilTools::headings( 'groups', true, true, true, false );
 				break;
 
 			case 'ads':
-				$primary_keys     = array_keys( UtilDt::headings( 'ads', true, false, false, false ) );
-				$meta_keys        = array_keys( UtilDt::headings( 'ads', false, true, true, false ) );
-				$all_allowed_keys = UtilDt::headings( 'ads', true, true, true, false );
+				$primary_keys     = array_keys( UtilTools::headings( 'ads', true, false, false, false ) );
+				$meta_keys        = array_keys( UtilTools::headings( 'ads', false, true, true, false ) );
+				$all_allowed_keys = UtilTools::headings( 'ads', true, true, true, false );
 				break;
 
 			case 'placements':
-				$primary_keys     = array_keys( UtilDt::headings( 'placements', true, false, false, false ) );
-				$meta_keys        = array_keys( UtilDt::headings( 'placements', false, true, true, false ) );
-				$all_allowed_keys = UtilDt::headings( 'placements', true, true, true, false );
+				$primary_keys     = array_keys( UtilTools::headings( 'placements', true, false, false, false ) );
+				$meta_keys        = array_keys( UtilTools::headings( 'placements', false, true, true, false ) );
+				$all_allowed_keys = UtilTools::headings( 'placements', true, true, true, false );
 				break;
 
 			case 'stats':
-				$primary_keys     = array_keys( UtilDt::headings( 'stats', true, false, false, false ) );
-				$meta_keys        = array_keys( UtilDt::headings( 'stats', false, true, true, false ) );
-				$all_allowed_keys = UtilDt::headings( 'stats', true, true, true, false );
+				$primary_keys     = array_keys( UtilTools::headings( 'stats', true, false, false, false ) );
+				$meta_keys        = array_keys( UtilTools::headings( 'stats', false, true, true, false ) );
+				$all_allowed_keys = UtilTools::headings( 'stats', true, true, true, false );
 				break;
 		}
 
@@ -412,7 +412,7 @@ class Import extends AdminDt {
 
 			// The ad IDs won't match up, so we update this later.
 			$do_not_copy_meta  = array( 'ad_order', 'ad_weights' );
-			$allowed_meta_keys = array_merge( array_keys( UtilDt::headings( 'groups', false, true, true, false ) ), $allowed_import_keys );
+			$allowed_meta_keys = array_merge( array_keys( UtilTools::headings( 'groups', false, true, true, false ) ), $allowed_import_keys );
 
 			foreach ( $meta as $meta_key => $meta_value ) {
 				if ( ! in_array( $meta_key, $allowed_meta_keys, true ) ) {
@@ -644,7 +644,7 @@ class Import extends AdminDt {
 		$home_url     = home_url();
 
 		foreach ( $data as $ad ) {
-			$new_post_id = $this->import_post( $ad, AdCommander::posttype_ad(), $do_not_copy, array_keys( UtilDt::headings( 'ads', false, true, true, false ) ), $args );
+			$new_post_id = $this->import_post( $ad, AdCommander::posttype_ad(), $do_not_copy, array_keys( UtilTools::headings( 'ads', false, true, true, false ) ), $args );
 
 			if ( $new_post_id ) {
 				$new_post_ids[] = $new_post_id;
@@ -686,7 +686,7 @@ class Import extends AdminDt {
 	}
 
 	/**
-	 * Import ads. Assumes data has already been processed, formatted, and sanitized.
+	 * Import placements. Assumes data has already been processed, formatted, and sanitized.
 	 *
 	 * @param array $data Array of posts and post meta.
 	 * @param array $args Optional arguments used during import.
@@ -711,7 +711,7 @@ class Import extends AdminDt {
 		$new_post_ids = array();
 
 		foreach ( $data as $ad ) {
-			$new_post_id = $this->import_post( $ad, AdCommander::posttype_placement(), $do_not_copy, array_keys( UtilDt::headings( 'placements', false, true, true, false ) ), $args );
+			$new_post_id = $this->import_post( $ad, AdCommander::posttype_placement(), $do_not_copy, array_keys( UtilTools::headings( 'placements', false, true, true, false ) ), $args );
 
 			if ( $new_post_id ) {
 				$new_post_ids[] = $new_post_id;

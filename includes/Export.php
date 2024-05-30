@@ -6,7 +6,7 @@ use ADCmdr\Vendor\WOAdminFramework\WOMeta;
 /**
  * Export functionality
  */
-class Export extends AdminDt {
+class Export extends AdminTools {
 
 	/**
 	 * An instance of this class.
@@ -72,7 +72,6 @@ class Export extends AdminDt {
 		return $this->export_suffix;
 	}
 
-
 	/**
 	 * Add admin notice on export success.
 	 */
@@ -108,6 +107,7 @@ class Export extends AdminDt {
 		global $wp_filesystem;
 
 		$filelist = $wp_filesystem->dirlist( self::export_dir(), false );
+
 		if ( is_array( $filelist ) ) {
 			$bundles = array_filter(
 				$filelist,
@@ -294,7 +294,7 @@ class Export extends AdminDt {
 	 * @return array
 	 */
 	private function process_groups() {
-		$headings         = array_keys( UtilDt::headings( 'groups' ) );
+		$headings         = array_keys( UtilTools::headings( 'groups' ) );
 		$processed_groups = array();
 
 		$groups = Query::groups();
@@ -342,7 +342,7 @@ class Export extends AdminDt {
 	 * @return array
 	 */
 	private function process_ads() {
-		$headings      = array_keys( UtilDt::headings( 'ads' ) );
+		$headings      = array_keys( UtilTools::headings( 'ads' ) );
 		$processed_ads = array();
 
 		$ads = Query::ads( 'post_title', 'asc', Util::any_post_status( array( 'trash' ) ) );
@@ -409,7 +409,7 @@ class Export extends AdminDt {
 	 * @return array
 	 */
 	private function process_placements() {
-		$headings             = array_keys( UtilDt::headings( 'placements' ) );
+		$headings             = array_keys( UtilTools::headings( 'placements' ) );
 		$processed_placements = array();
 
 		$placements = Query::placements( Util::any_post_status( array( 'trash' ) ) );
@@ -487,7 +487,7 @@ class Export extends AdminDt {
 	 */
 	private function process_stats( $ads ) {
 
-		$headings = array_keys( UtilDt::headings( 'stats' ) );
+		$headings = array_keys( UtilTools::headings( 'stats' ) );
 
 		if ( ! $ads['rows'] || empty( $ads['rows'] ) ) {
 			return array(
