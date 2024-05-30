@@ -21,15 +21,15 @@ if ( ! defined( 'WPINC' ) ) {
 	die;
 }
 
-define( 'ADCMDRDT_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
-define( 'ADCMDRDT_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
-define( 'ADCMDRDT_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
-define( 'ADCMDRDT_PLUGIN_FILE', __FILE__ );
+define( 'ADCMRDRTOOLS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
+define( 'ADCMRDRTOOLS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
+define( 'ADCMRDRTOOLS_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
+define( 'ADCMRDRTOOLS_PLUGIN_FILE', __FILE__ );
 
 /**
  * Load
  */
-require ADCMDRDT_PLUGIN_DIR . 'vendor/autoload.php';
+require ADCMRDRTOOLS_PLUGIN_DIR . 'vendor/autoload.php';
 
 
 /**
@@ -60,7 +60,7 @@ add_action(
 				'load-plugins.php',
 				function () {
 					add_action(
-						'after_plugin_row_' . ADCMDRDT_PLUGIN_BASENAME,
+						'after_plugin_row_' . ADCMRDRTOOLS_PLUGIN_BASENAME,
 						function () {
 							ADCmdr\AdCommanderTools::plugin_list_notice(
 								/* translators: %1$s: anchor tag with URL, %2$s: close anchor tag */
@@ -97,7 +97,7 @@ add_action(
 				'load-plugins.php',
 				function () {
 					add_action(
-						'after_plugin_row_' . ADCMDRDT_PLUGIN_BASENAME,
+						'after_plugin_row_' . ADCMRDRTOOLS_PLUGIN_BASENAME,
 						function () {
 							ADCmdr\AdCommanderTools::plugin_list_notice(
 								/* translators: %1$s: The required version of Ad Commander */
@@ -116,7 +116,7 @@ add_action(
 		/**
 		 * DT is loaded.
 		 */
-		define( 'ADCMDRDT_LOADED', true );
+		define( 'ADCMRDRTOOLS_LOADED', true );
 
 		/**
 		 * Has the plugin version updated?

@@ -30,7 +30,7 @@ class AdCommanderTools {
 	 * @return string
 	 */
 	public static function assets_path() {
-		return ADCMDRDT_PLUGIN_DIR . 'dist/';
+		return ADCMRDRTOOLS_PLUGIN_DIR . 'dist/';
 	}
 
 	/**
@@ -39,7 +39,7 @@ class AdCommanderTools {
 	 * @return string
 	 */
 	public static function assets_url() {
-		return ADCMDRDT_PLUGIN_URL . 'dist/';
+		return ADCMRDRTOOLS_PLUGIN_URL . 'dist/';
 	}
 
 	/**
