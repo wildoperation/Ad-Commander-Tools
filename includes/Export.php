@@ -48,6 +48,32 @@ class Export extends AdminTools {
 	public function hooks() {
 		add_action( 'admin_action_adcmdr-do_export', array( $this, 'do_export' ) );
 		add_action( 'admin_notices', array( $this, 'export_success' ) );
+		add_action( 'admin_notices', array( $this, 'export_fail' ) );
+	}
+
+
+	/**
+	 * Redirect after an import and include arguments.
+	 *
+	 * @param array $nonce The export nonce.
+	 * @param bool  $success Whether this is a successful redirect or a failure.
+	 *
+	 * @return void
+	 */
+	public function redirect( $nonce, $success = true ) {
+		$url = admin_url( self::admin_path( 'tools' ) );
+
+		$url = add_query_arg(
+			array(
+				'action'       => ( $success ) ? Util::ns( 'export_success' ) : Util::ns( 'export_fail' ),
+				$nonce['name'] => wp_create_nonce( $nonce['action'] ),
+				'tab'          => 'adcmdr_export',
+			),
+			$url
+		);
+
+		wp_safe_redirect( sanitize_url( $url ) );
+		exit;
 	}
 
 	/**
@@ -83,6 +109,24 @@ class Export extends AdminTools {
 				<div class="notice notice-success is-dismissible">
 					<p>
 						<?php esc_html_e( 'Your export was completed successfully. You can download your bundle below.', 'ad-commander' ); ?>
+					</p>
+				</div>
+					<?php
+			}
+		}
+	}
+
+	/**
+	 * Add admin notice on export fail.
+	 */
+	public function export_fail() {
+		if ( isset( $_GET['action'] ) && sanitize_text_field( wp_unslash( $_GET['action'] ) ) === Util::ns( 'export_fail' ) ) {
+			$export_nonce = $this->nonce_array( 'adcmdr-do_export', 'export' );
+			if ( check_admin_referer( $export_nonce['action'], $export_nonce['name'] ) && current_user_can( AdCommander::capability() ) ) {
+				?>
+				<div class="notice notice-warning is-dismissible">
+					<p>
+						<?php esc_html_e( 'Your export failed to process.', 'ad-commander' ); ?>
 					</p>
 				</div>
 					<?php
@@ -145,6 +189,7 @@ class Export extends AdminTools {
 	 * @return void|bool
 	 */
 	public function do_export() {
+
 		$export_nonce = $this->nonce_array( 'adcmdr-do_export', 'export' );
 
 		if ( ! isset( $_REQUEST['action'] ) ||
@@ -173,20 +218,11 @@ class Export extends AdminTools {
 			$bundles['adcmdr_stats'] = $this->process_stats( $ads );
 		}
 
-		$this->create_bundle( $bundles );
+		if ( $this->create_bundle( $bundles ) ) {
+			$this->redirect( $export_nonce, true );
+		}
 
-		$url = admin_url( self::admin_path( 'tools' ) );
-		$url = add_query_arg(
-			array(
-				'action'              => Util::ns( 'export_success' ),
-				$export_nonce['name'] => wp_create_nonce( $export_nonce['action'] ),
-				'tab'                 => 'adcmdr_export',
-			),
-			$url
-		);
-
-		wp_safe_redirect( sanitize_url( $url ) );
-		exit;
+		$this->redirect( $export_nonce, false );
 	}
 
 	/**
@@ -233,7 +269,6 @@ class Export extends AdminTools {
 
 		foreach ( $bundle as $file => $data ) {
 			if ( ! isset( $data['headings'] ) || ! $data['headings'] ) {
-				wo_log( 'no headings - ' . $file );
 				continue;
 			}
 
@@ -285,7 +320,11 @@ class Export extends AdminTools {
 			foreach ( $csvs as $csv ) {
 				wp_delete_file( $csv );
 			}
+
+			return true;
 		}
+
+		return false;
 	}
 
 	/**

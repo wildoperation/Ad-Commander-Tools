@@ -13,6 +13,45 @@ class StatsDelete extends AdminTools {
 		add_action( 'admin_action_adcmdr-do_delete_rogue_stats', array( $this, 'do_delete_rogue_stats' ) );
 		add_action( 'admin_action_adcmdr-do_delete_all_stats', array( $this, 'do_delete_all_stats' ) );
 		add_action( 'admin_action_adcmdr-do_delete_ad_stats', array( $this, 'do_delete_ad_stats' ) );
+
+		add_action( 'admin_notices', array( $this, 'delete_stats_success' ) );
+		add_action( 'admin_notices', array( $this, 'delete_stats_fail' ) );
+	}
+
+	/**
+	 * Add admin notice on delete success.
+	 */
+	public function delete_stats_success() {
+		if ( isset( $_GET['action'] ) && sanitize_text_field( wp_unslash( $_GET['action'] ) ) === Util::ns( 'delete_stats_success' ) ) {
+			$delete_stats_nonce = $this->nonce_array( 'adcmdr-do_delete_stats', 'stats' );
+			if ( check_admin_referer( $delete_stats_nonce['action'], $delete_stats_nonce['name'] ) && current_user_can( AdCommander::capability() ) ) {
+				?>
+				<div class="notice notice-success is-dismissible">
+					<p>
+						<?php esc_html_e( 'Your stats were successfully deleted.', 'ad-commander' ); ?>
+					</p>
+				</div>
+					<?php
+			}
+		}
+	}
+
+	/**
+	 * Add admin notice on delete fail.
+	 */
+	public function delete_stats_fail() {
+		if ( isset( $_GET['action'] ) && sanitize_text_field( wp_unslash( $_GET['action'] ) ) === Util::ns( 'delete_stats_fail' ) ) {
+			$delete_stats_nonce = $this->nonce_array( 'adcmdr-do_delete_stats', 'stats' );
+			if ( check_admin_referer( $delete_stats_nonce['action'], $delete_stats_nonce['name'] ) && current_user_can( AdCommander::capability() ) ) {
+				?>
+				<div class="notice notice-warning is-dismissible">
+					<p>
+						<?php esc_html_e( 'We were unable to delete your stats.', 'ad-commander' ); ?>
+					</p>
+				</div>
+					<?php
+			}
+		}
 	}
 
 	/**
@@ -29,10 +68,10 @@ class StatsDelete extends AdminTools {
 
 		$url = add_query_arg(
 			array(
-				'action'       => ( $success ) ? Util::ns( 'delete_success' ) : Util::ns( 'delete_fail' ),
+				'action'       => ( $success ) ? Util::ns( 'delete_stats_success' ) : Util::ns( 'delete_stats_fail' ),
 				'delete_type'  => $type,
 				$nonce['name'] => wp_create_nonce( $nonce['action'] ),
-				'tab'          => 'adcmdr_manage_stats',
+				'tab'          => 'adcmdr_delete_stats',
 			),
 			$url
 		);
@@ -48,6 +87,7 @@ class StatsDelete extends AdminTools {
 	 */
 	public function do_delete_ad_stats() {
 		$delete_stats_nonce = $this->nonce_array( 'adcmdr-do_delete_ad_stats', 'stats' );
+		$redirect_nonce     = $this->nonce_array( 'adcmdr-do_delete_stats', 'stats' );
 
 		if ( ! isset( $_REQUEST['action'] ) ||
 			! check_admin_referer( $delete_stats_nonce['action'], $delete_stats_nonce['name'] ) ||
@@ -64,7 +104,7 @@ class StatsDelete extends AdminTools {
 			! isset( $_REQUEST['adcmdr_ad_id'] ) ||
 			( isset( $_REQUEST['adcmdr_ad_id'] ) && intval( $_REQUEST['adcmdr_ad_id'] ) <= 0 )
 			) {
-			$this->redirect( $delete_stats_nonce, 'delete_all', false );
+			$this->redirect( $redirect_nonce, 'delete_ad', false );
 		}
 
 		$ad_id = intval( $_REQUEST['adcmdr_ad_id'] );
@@ -73,7 +113,7 @@ class StatsDelete extends AdminTools {
 		$wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE ad_id = %d', array( TrackingLocal::get_tracking_table( 'impressions' ), $ad_id ) ) );
 		$wpdb->query( $wpdb->prepare( 'DELETE FROM %i WHERE ad_id = %d', array( TrackingLocal::get_tracking_table( 'clicks' ), $ad_id ) ) );
 
-		$this->redirect( $delete_stats_nonce, 'delete_ad' );
+		$this->redirect( $redirect_nonce, 'delete_ad' );
 	}
 
 	/**
@@ -83,6 +123,7 @@ class StatsDelete extends AdminTools {
 	 */
 	public function do_delete_all_stats() {
 		$delete_stats_nonce = $this->nonce_array( 'adcmdr-do_delete_all_stats', 'stats' );
+		$redirect_nonce     = $this->nonce_array( 'adcmdr-do_delete_stats', 'stats' );
 
 		if ( ! isset( $_REQUEST['action'] ) ||
 			! check_admin_referer( $delete_stats_nonce['action'], $delete_stats_nonce['name'] ) ||
@@ -95,14 +136,14 @@ class StatsDelete extends AdminTools {
 		}
 
 		if ( ! isset( $_REQUEST['adcmdr_confirm_action'] ) || ( isset( $_REQUEST['adcmdr_confirm_action'] ) && ! Util::truthy( sanitize_text_field( wp_unslash( $_REQUEST['adcmdr_confirm_action'] ) ) ) ) ) {
-			$this->redirect( $delete_stats_nonce, 'delete_all', false );
+			$this->redirect( $redirect_nonce, 'delete_all', false );
 		}
 
 		global $wpdb;
 		$wpdb->query( $wpdb->prepare( 'TRUNCATE TABLE %i', TrackingLocal::get_tracking_table( 'impressions' ) ) );
 		$wpdb->query( $wpdb->prepare( 'TRUNCATE TABLE %i', TrackingLocal::get_tracking_table( 'clicks' ) ) );
 
-		$this->redirect( $delete_stats_nonce, 'delete_all' );
+		$this->redirect( $redirect_nonce, 'delete_all' );
 	}
 
 	/**
@@ -112,6 +153,7 @@ class StatsDelete extends AdminTools {
 	 */
 	public function do_delete_rogue_stats() {
 		$delete_stats_nonce = $this->nonce_array( 'adcmdr-do_delete_rogue_stats', 'stats' );
+		$redirect_nonce     = $this->nonce_array( 'adcmdr-do_delete_stats', 'stats' );
 
 		if ( ! isset( $_REQUEST['action'] ) ||
 			! check_admin_referer( $delete_stats_nonce['action'], $delete_stats_nonce['name'] ) ||
@@ -124,7 +166,7 @@ class StatsDelete extends AdminTools {
 		}
 
 		if ( ! isset( $_REQUEST['adcmdr_confirm_action'] ) || ( isset( $_REQUEST['adcmdr_confirm_action'] ) && ! Util::truthy( sanitize_text_field( wp_unslash( $_REQUEST['adcmdr_confirm_action'] ) ) ) ) ) {
-			$this->redirect( $delete_stats_nonce, 'delete_rogue', false );
+			$this->redirect( $redirect_nonce, 'delete_rogue', false );
 		}
 
 		$rogue = self::find_rogue_entries();
@@ -149,7 +191,7 @@ class StatsDelete extends AdminTools {
 			}
 		}
 
-		$this->redirect( $delete_stats_nonce, 'delete_rogue' );
+		$this->redirect( $redirect_nonce, 'delete_rogue' );
 	}
 
 	/**

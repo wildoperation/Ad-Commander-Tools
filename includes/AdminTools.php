@@ -321,8 +321,8 @@ class AdminTools extends Admin {
 			<td>
 				<?php
 				$id = $this->sf()->key( 'export_include_stats' );
-				$this->sf()->checkbox( $id, 1 );
-				$this->sf()->label( $id, esc_html__( 'Include statistics in export bundle.', 'ad-commander-tools' ) );
+				$this->sf()->wo_forms->checkbox( $id, 1 );
+				$this->sf()->wo_forms->label( $id, esc_html__( 'Include statistics in export bundle.', 'ad-commander-tools' ) );
 				?>
 			</td>
 		</tr>
@@ -436,8 +436,8 @@ class AdminTools extends Admin {
 				<div class="adcmdrdt-sub">
 				<?php
 				$id = $this->sf()->key( 'import_bundle_file' );
-				$this->sf()->input( $id, null, 'file', array( 'accept' => '.zip' ) );
-				$this->sf()->label( $id, esc_html__( 'Select a bundle file to upload.', 'ad-commander-tools' ) );
+				$this->sf()->wo_forms->input( $id, null, 'file', array( 'accept' => '.zip' ) );
+				$this->sf()->wo_forms->label( $id, esc_html__( 'Select a bundle file to upload.', 'ad-commander-tools' ) );
 				?>
 				</div>
 				<div class="adcmdrdt-sub adcmdrdt-sub--col adcmdrdt-sub--divide">
@@ -451,8 +451,8 @@ class AdminTools extends Admin {
 				);
 
 				$id = $this->sf()->key( 'import_set_status' );
-				$this->sf()->label( $id, esc_html__( 'Set the status of imported Ads and Placements to:', 'ad-commander-tools' ) );
-				$this->sf()->select(
+				$this->sf()->wo_forms->label( $id, esc_html__( 'Set the status of imported Ads and Placements to:', 'ad-commander-tools' ) );
+				$this->sf()->wo_forms->select(
 					$id,
 					$options,
 					'draft'
@@ -505,7 +505,7 @@ class AdminTools extends Admin {
 			<td>
 				<?php
 				$id = $this->sf()->key( 'ad_id' );
-				$this->sf()->input( $id, null, 'number' );
+				$this->sf()->wo_forms->input( $id, null, 'number' );
 				$this->sf()->message( esc_html__( 'Enter the ad ID to delete.', 'ad-commander-tools' ) );
 				?>
 			</td>
@@ -514,8 +514,8 @@ class AdminTools extends Admin {
 			<td>
 				<?php
 				$id = $this->sf()->key( 'confirm_action' );
-				$this->sf()->checkbox( $id, 0 );
-				$this->sf()->label( $id, esc_html__( 'I understand I am deleting statistics for an ad. This action cannot be undone.', 'ad-commander-tools' ) );
+				$this->sf()->wo_forms->checkbox( $id, 0, 1, array( 'id' => $id . '_ad' ) );
+				$this->sf()->wo_forms->label( $id . '_ad', esc_html__( 'I understand I am deleting statistics for an ad. This action cannot be undone.', 'ad-commander-tools' ) );
 				?>
 				<div class="adcmdrdt-sub">
 					<input type="submit" value="<?php echo esc_attr( __( 'Delete ad statistics', 'ad-commander-tools' ) ); ?>" class="button button-primary adcmdrdt-submit" /> <span class="adcmdr-loader"></span>
@@ -563,8 +563,16 @@ class AdminTools extends Admin {
 				}
 
 				$id = $this->sf()->key( 'confirm_action' );
-				$this->sf()->checkbox( $id, 0, 1, array( 'disabled' => $disabled ) );
-				$this->sf()->label( $id, __( 'I understand I am deleting statistics for ads that no longer exist. These stats will no longer be included in Reports. This action cannot be undone.', 'ad-commander-tools' ) );
+				$this->sf()->wo_forms->checkbox(
+					$id,
+					0,
+					1,
+					array(
+						'disabled' => $disabled,
+						'id'       => $id . '_rogue',
+					)
+				);
+				$this->sf()->wo_forms->label( $id . '_rogue', __( 'I understand I am deleting statistics for ads that no longer exist. These stats will no longer be included in Reports. This action cannot be undone.', 'ad-commander-tools' ) );
 				?>
 				<div class="adcmdrdt-sub">
 					<input type="submit" value="<?php echo esc_attr( __( 'Delete rogue statistics', 'ad-commander-tools' ) ); ?>" class="button button-primary adcmdrdt-submit"
@@ -602,8 +610,8 @@ class AdminTools extends Admin {
 			<td>
 				<?php
 				$id = $this->sf()->key( 'confirm_action' );
-				$this->sf()->checkbox( $id, 0 );
-				$this->sf()->label( $id, esc_html__( 'I understand I am deleting statistics for all ads and that this action cannot be undone.', 'ad-commander-tools' ) );
+				$this->sf()->wo_forms->checkbox( $id, 0, 1, array( 'id' => $id . '_all' ) );
+				$this->sf()->wo_forms->label( $id . '_all', esc_html__( 'I understand I am deleting statistics for all ads and that this action cannot be undone.', 'ad-commander-tools' ) );
 				?>
 				<div class="adcmdrdt-sub">
 					<input type="submit" value="<?php echo esc_attr( __( 'Reset all statistics', 'ad-commander-tools' ) ); ?>" class="button button-primary adcmdrdt-submit" /> <span class="adcmdr-loader"></span>

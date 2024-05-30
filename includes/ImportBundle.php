@@ -11,7 +11,44 @@ class ImportBundle extends Import {
 	 */
 	public function hooks() {
 		add_action( 'admin_action_adcmdr-do_import_bundle', array( $this, 'do_import_bundle' ) );
-		// add_action( 'admin_notices', array( $this, 'export_success' ) );
+		add_action( 'admin_notices', array( $this, 'import_success' ) );
+		add_action( 'admin_notices', array( $this, 'import_fail' ) );
+	}
+
+	/**
+	 * Add admin notice on import success.
+	 */
+	public function import_success() {
+		if ( isset( $_GET['action'] ) && sanitize_text_field( wp_unslash( $_GET['action'] ) ) === Util::ns( 'import_success' ) ) {
+			$import_nonce = $this->nonce_array( 'adcmdr-do_import_bundle', 'import' );
+			if ( check_admin_referer( $import_nonce['action'], $import_nonce['name'] ) && current_user_can( AdCommander::capability() ) ) {
+				?>
+				<div class="notice notice-success is-dismissible">
+					<p>
+						<?php esc_html_e( 'Your import was completed successfully.', 'ad-commander' ); ?>
+					</p>
+				</div>
+					<?php
+			}
+		}
+	}
+
+	/**
+	 * Add admin notice on import fail.
+	 */
+	public function import_fail() {
+		if ( isset( $_GET['action'] ) && sanitize_text_field( wp_unslash( $_GET['action'] ) ) === Util::ns( 'import_fail' ) ) {
+			$import_nonce = $this->nonce_array( 'adcmdr-do_import_bundle', 'import' );
+			if ( check_admin_referer( $import_nonce['action'], $import_nonce['name'] ) && current_user_can( AdCommander::capability() ) ) {
+				?>
+				<div class="notice notice-warning is-dismissible">
+					<p>
+						<?php esc_html_e( 'Your import failed to process.', 'ad-commander' ); ?>
+					</p>
+				</div>
+					<?php
+			}
+		}
 	}
 
 	/**
@@ -169,7 +206,7 @@ class ImportBundle extends Import {
 		/**
 		 * Finished
 		 */
-		$this->cleanup_and_redirect( $import_nonce, $bundle_tmp, $extract_to_dir, false );
+		$this->cleanup_and_redirect( $import_nonce, $bundle_tmp, $extract_to_dir, true );
 	}
 
 	/**
@@ -204,7 +241,7 @@ class ImportBundle extends Import {
 	 *
 	 * @return void
 	 */
-	private function cleanup_and_redirect( $nonce, $delete_files = array(), $delete_dirs = array(), $fail = true ) {
+	private function cleanup_and_redirect( $nonce, $delete_files = array(), $delete_dirs = array(), $success = false ) {
 		global $wp_filesystem;
 
 		if ( ! is_array( $delete_files ) ) {
@@ -229,7 +266,7 @@ class ImportBundle extends Import {
 
 		Filesystem::instance()->end_wp_filesystem();
 
-		$this->redirect( $nonce, 'bundle', $fail );
+		$this->redirect( $nonce, 'bundle', $success );
 	}
 
 	/**
