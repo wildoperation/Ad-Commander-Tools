@@ -85,7 +85,7 @@ add_action(
 					<p>
 					<?php
 						/* translators: %1$s: The required version of Ad Commander */
-						echo esc_html( sprintf( __( 'Ad Commander Tools requires version %1$s or greater of Ad Commander. Please upgrade Ad Commander continue.', 'ad-commander-tools' ), AdCmdr\AdCommanderTools::required_adcmdr_version() ) );
+						echo esc_html( sprintf( __( 'Ad Commander Tools requires version %1$s or greater of Ad Commander. Please upgrade Ad Commander to continue.', 'ad-commander-tools' ), AdCmdr\AdCommanderTools::required_adcmdr_version() ) );
 					?>
 					</p>
 				</div>
@@ -101,7 +101,7 @@ add_action(
 						function () {
 							ADCmdr\AdCommanderTools::plugin_list_notice(
 								/* translators: %1$s: The required version of Ad Commander */
-								sprintf( esc_html__( 'Ad Commander Tools requires version %1$s or greater of Ad Commander. Please upgrade Ad Commander continue.', 'ad-commander-tools' ), AdCmdr\AdCommanderTools::required_adcmdr_version() )
+								sprintf( esc_html__( 'Ad Commander Tools requires version %1$s or greater of Ad Commander. Please upgrade Ad Commander to continue.', 'ad-commander-tools' ), AdCmdr\AdCommanderTools::required_adcmdr_version() )
 							);
 						},
 						10,
