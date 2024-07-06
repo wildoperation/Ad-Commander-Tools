@@ -4,7 +4,7 @@
  * Plugin URI:       https://wpadcommander.com
  * Description:      Import, export, and stat management tools for Ad Commander.
  * Requires Plugins: ad-commander
- * Version:          1.0.0
+ * Version:          1.0.1
  * Author:           Wild Operation
  * Author URI:       https://wildoperation.com
  * License:          GPL-3.0
@@ -14,7 +14,7 @@
  * @package WordPress
  * @subpackage Import, export, and stat management tools for Ad Commander.
  * @since 1.0.0
- * @version 1.0.0
+ * @version 1.0.1
  */
 
 /* Abort! */

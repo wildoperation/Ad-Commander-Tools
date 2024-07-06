@@ -3,7 +3,7 @@ Contributors: wildoperation, timstl
 Tags: ads, banners, advertising, adsense, ad manager
 Requires at least: 6.2
 Tested up to: 6.5
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 Requires PHP: 7.4
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -25,6 +25,10 @@ With Ad Commander Tools you can export your ads, groups, placements, and stats i
 * Reset all impressions and clicks for all ads
 
 == Changelog ==
+= 1.0.1 =
+* Adds required plugin header
+* Fixes textdomains
+
 = 1.0.0 =
 * Initial stable version
 
