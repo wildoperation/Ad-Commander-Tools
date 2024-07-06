@@ -28,7 +28,7 @@ class StatsDelete extends AdminTools {
 				?>
 				<div class="notice notice-success is-dismissible">
 					<p>
-						<?php esc_html_e( 'Your stats were successfully deleted.', 'ad-commander' ); ?>
+						<?php esc_html_e( 'Your stats were successfully deleted.', 'ad-commander-tools' ); ?>
 					</p>
 				</div>
 					<?php
@@ -46,7 +46,7 @@ class StatsDelete extends AdminTools {
 				?>
 				<div class="notice notice-warning is-dismissible">
 					<p>
-						<?php esc_html_e( 'We were unable to delete your stats.', 'ad-commander' ); ?>
+						<?php esc_html_e( 'We were unable to delete your stats.', 'ad-commander-tools' ); ?>
 					</p>
 				</div>
 					<?php

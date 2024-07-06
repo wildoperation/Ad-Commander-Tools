@@ -25,7 +25,7 @@ class ImportBundle extends Import {
 				?>
 				<div class="notice notice-success is-dismissible">
 					<p>
-						<?php esc_html_e( 'Your import was completed successfully.', 'ad-commander' ); ?>
+						<?php esc_html_e( 'Your import was completed successfully.', 'ad-commander-tools' ); ?>
 					</p>
 				</div>
 					<?php
@@ -43,7 +43,7 @@ class ImportBundle extends Import {
 				?>
 				<div class="notice notice-warning is-dismissible">
 					<p>
-						<?php esc_html_e( 'Your import failed to process.', 'ad-commander' ); ?>
+						<?php esc_html_e( 'Your import failed to process.', 'ad-commander-tools' ); ?>
 					</p>
 				</div>
 					<?php

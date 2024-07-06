@@ -108,7 +108,7 @@ class Export extends AdminTools {
 				?>
 				<div class="notice notice-success is-dismissible">
 					<p>
-						<?php esc_html_e( 'Your export was completed successfully. You can download your bundle below.', 'ad-commander' ); ?>
+						<?php esc_html_e( 'Your export was completed successfully. You can download your bundle below.', 'ad-commander-tools' ); ?>
 					</p>
 				</div>
 					<?php
@@ -126,7 +126,7 @@ class Export extends AdminTools {
 				?>
 				<div class="notice notice-warning is-dismissible">
 					<p>
-						<?php esc_html_e( 'Your export failed to process.', 'ad-commander' ); ?>
+						<?php esc_html_e( 'Your export failed to process.', 'ad-commander-tools' ); ?>
 					</p>
 				</div>
 					<?php

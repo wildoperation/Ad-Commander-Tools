@@ -1,14 +1,15 @@
 <?php
 /**
- * Plugin Name:     Ad Commander Tools
- * Plugin URI:      https://wpadcommander.com
- * Description:     Import, export, and stat management tools for Ad Commander.
- * Version:         1.0.0
- * Author:          Wild Operation
- * Author URI:      https://wildoperation.com
- * License:         GPL-3.0
- * License URI:     http://www.gnu.org/licenses/gpl-3.0.txt
- * Text Domain:     ad-commander-tools
+ * Plugin Name:      Ad Commander Tools
+ * Plugin URI:       https://wpadcommander.com
+ * Description:      Import, export, and stat management tools for Ad Commander.
+ * Requires Plugins: ad-commander
+ * Version:          1.0.0
+ * Author:           Wild Operation
+ * Author URI:       https://wildoperation.com
+ * License:          GPL-3.0
+ * License URI:      http://www.gnu.org/licenses/gpl-3.0.txt
+ * Text Domain:      ad-commander-tools
  *
  * @package WordPress
  * @subpackage Import, export, and stat management tools for Ad Commander.

@@ -401,7 +401,7 @@ class AdminTools extends Admin {
 			?>
 			<div class="adcmdr-notification adcmdr-notice-warn">
 				<p>
-					<?php esc_html_e( 'Your user does not have permission to use unfiltered HTML. Scripts and some other HTML will be stripped from Text/Code ads, Rich Content ads, and custom code.', 'ad-commander' ); ?>
+					<?php esc_html_e( 'Your user does not have permission to use unfiltered HTML. Scripts and some other HTML will be stripped from Text/Code ads, Rich Content ads, and custom code.', 'ad-commander-tools' ); ?>
 					<?php Doc::doc_link( 'unfiltered_html' ); ?>
 				</p>
 			</div>
