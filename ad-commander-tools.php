@@ -12,7 +12,7 @@
  * Text Domain:      ad-commander-tools
  *
  * @package WordPress
- * @subpackage Import, export, and stat management tools for Ad Commander.
+ * @subpackage ad-commander-tools
  * @since 1.0.0
  * @version 1.0.1
  */
