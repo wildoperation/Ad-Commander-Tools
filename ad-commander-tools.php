@@ -2,7 +2,7 @@
 /**
  * Plugin Name:      Ad Commander Tools
  * Plugin URI:       https://wpadcommander.com
- * Description:      Import, export, and stat management tools for Ad Commander.
+ * Description:      Add-on for the Ad Commander plugin that allows you to import, export, and manage ad statistics.
  * Requires Plugins: ad-commander
  * Version:          1.0.1
  * Author:           Wild Operation
