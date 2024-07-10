@@ -2,7 +2,7 @@
 Contributors: wildoperation, timstl
 Tags: ads, banners, advertising, adsense, ad manager
 Requires at least: 6.2
-Tested up to: 6.5
+Tested up to: 6.6
 Stable tag: 1.0.1
 Requires PHP: 7.4
 License: GPLv3
@@ -13,7 +13,7 @@ Add-on for the Ad Commander plugin that allows you to import, export, and manage
 
 == Description ==
 
-This plugin is an add-on for [Ad Commander](https://wordpress.org/plugins/ad-commander/) and requires Ad Commander to function. Ad Commander tools provides functionality that would not be used by most Ad Commander users on a regular basis.
+This plugin is an add-on for [Ad Commander](https://wordpress.org/plugins/ad-commander/) and requires Ad Commander to function. Ad Commander Tools provides functionality that would not be used by most Ad Commander users on a regular basis.
 
 With Ad Commander Tools you can export your ads, groups, placements, and stats into a bundle, import bundles into other sites, and reset ad statistics for individual ads or all ads.
 
