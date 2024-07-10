@@ -1,6 +1,6 @@
 === Ad Commander Tools ===
 Contributors: wildoperation, timstl
-Tags: ads, banners, advertising, adsense, ad manager
+Tags: advertising, banners, rotate, adsense, amp
 Requires at least: 6.2
 Tested up to: 6.6
 Stable tag: 1.0.1
