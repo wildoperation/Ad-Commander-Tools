@@ -110,9 +110,15 @@ class ImportBundle extends Import {
 
 		if ( ! $basename ||
 		! isset( $_REQUEST['adcmdr_import_bundle_options'] ) ||
-		empty( $_REQUEST['adcmdr_import_bundle_options'] ) ||
-		( strtolower( $file_type['ext'] ) !== 'zip' && strtolower( $file_type['type'] ) !== 'application/zip' ) ) {
+		empty( $_REQUEST['adcmdr_import_bundle_options'] ) ) {
 			$this->cleanup_and_redirect( $import_nonce, $bundle_tmp );
+		}
+
+		if ( ! $file_type || empty( $file_type ) || ( strtolower( $file_type['ext'] ) !== 'zip' && strtolower( $file_type['type'] ) !== 'application/zip' ) ) {
+			$parts = explode( '.', $bundle_name );
+			if ( ! is_array( $parts ) || count( $parts ) < 2 || strtolower( $parts[1] ) !== 'zip' ) {
+				$this->cleanup_and_redirect( $import_nonce, $bundle_tmp );
+			}
 		}
 
 		$set_post_status = isset( $_REQUEST['adcmdr_import_set_status'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['adcmdr_import_set_status'] ) ) : 'draft';
@@ -237,12 +243,14 @@ class ImportBundle extends Import {
 	 * @param array $nonce The import nonce.
 	 * @param array $delete_files Files to delete.
 	 * @param array $delete_dirs Directories to remove.
-	 * @param bool  $fail Whether this is a failure or success redirect.
+	 * @param bool  $success Whether this is a failure or success redirect.
 	 *
 	 * @return void
 	 */
 	private function cleanup_and_redirect( $nonce, $delete_files = array(), $delete_dirs = array(), $success = false ) {
 		global $wp_filesystem;
+
+		Filesystem::instance()->init_wp_filesystem();
 
 		if ( ! is_array( $delete_files ) ) {
 			$delete_files = array( $delete_files );
