@@ -1,0 +1,286 @@
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: Ad Commander Tools\n"
+"POT-Creation-Date: 2024-09-12 09:11-0500\n"
+"PO-Revision-Date: 2024-09-12 09:11-0500\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+"X-Generator: Poedit 3.5\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-Flags-xgettext: --add-comments=translators:\n"
+"X-Poedit-WPHeader: ad-commander-tools.php\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: __;_e;_n:1,2;_x:1,2c;_ex:1,2c;_nx:4c,1,2;esc_attr__;"
+"esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c;_n_noop:1,2;"
+"_nx_noop:3c,1,2;__ngettext_noop:1,2\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPathExcluded-0: *.min.js\n"
+"X-Poedit-SearchPathExcluded-1: node_modules\n"
+"X-Poedit-SearchPathExcluded-2: vendor\n"
+
+#. translators: %1$s: anchor tag with URL, %2$s: close anchor tag
+#: ad-commander-tools.php:52 ad-commander-tools.php:68
+#, php-format
+msgid ""
+"Ad Commander Tools requires the %1$sAd Commander plugin%2$s. Please enable "
+"Ad Commander to continue."
+msgstr ""
+
+#. translators: %1$s: The required version of Ad Commander
+#: ad-commander-tools.php:89 ad-commander-tools.php:105
+#, php-format
+msgid ""
+"Ad Commander Tools requires version %1$s or greater of Ad Commander. Please "
+"update Ad Commander."
+msgstr ""
+
+#: includes/AdminTools.php:169 includes/AdminTools.php:214
+msgid "Tools"
+msgstr ""
+
+#: includes/AdminTools.php:217 includes/AdminTools.php:398
+msgid "Import"
+msgstr ""
+
+#: includes/AdminTools.php:218 includes/AdminTools.php:293
+msgid "Export"
+msgstr ""
+
+#: includes/AdminTools.php:219
+msgid "Delete Ad Stats"
+msgstr ""
+
+#: includes/AdminTools.php:296
+msgid ""
+"Your host doesn't appear to support the necessary libraries for exporting "
+"and compressing your data. We are unable to create export bundles at this "
+"time."
+msgstr ""
+
+#: includes/AdminTools.php:307
+msgid "Include stats"
+msgstr ""
+
+#: includes/AdminTools.php:312
+msgid "Include statistics in export bundle."
+msgstr ""
+
+#: includes/AdminTools.php:317
+msgid "Export bundle"
+msgstr ""
+
+#: includes/AdminTools.php:319
+msgid "Create export bundle now"
+msgstr ""
+
+#. translators: %1$s: line break tag
+#: includes/AdminTools.php:322
+#, php-format
+msgid ""
+"A bundle will be created with your ads, groups, placements, and (optionally) "
+"stats.%1$sWhen importing this bundle into another site, you can choose which "
+"data to import."
+msgstr ""
+
+#: includes/AdminTools.php:332
+msgid "Exported files"
+msgstr ""
+
+#: includes/AdminTools.php:349
+msgid "Download"
+msgstr ""
+
+#: includes/AdminTools.php:376
+msgid "Ads"
+msgstr ""
+
+#: includes/AdminTools.php:377
+msgid "Groups"
+msgstr ""
+
+#: includes/AdminTools.php:378
+msgid "Placements"
+msgstr ""
+
+#: includes/AdminTools.php:379
+msgid "Stats"
+msgstr ""
+
+#: includes/AdminTools.php:383
+msgid "Import the following data (if present in the bundle file):"
+msgstr ""
+
+#: includes/AdminTools.php:404
+msgid ""
+"Your user does not have permission to use unfiltered HTML. Scripts and some "
+"other HTML will be stripped from Text/Code ads, Rich Content ads, and custom "
+"code."
+msgstr ""
+
+#: includes/AdminTools.php:420
+msgid "Import bundle"
+msgstr ""
+
+#: includes/AdminTools.php:422
+msgid ""
+"Upload a bundle zip created by Ad Commander's export tool. This zip will be "
+"processed and imported based on the options selected below."
+msgstr ""
+
+#: includes/AdminTools.php:427
+msgid "Select a bundle file to upload."
+msgstr ""
+
+#: includes/AdminTools.php:436
+msgid "Draft"
+msgstr ""
+
+#: includes/AdminTools.php:437
+msgid "Match imported status and post date"
+msgstr ""
+
+#: includes/AdminTools.php:441
+msgid "Set the status of imported Ads and Placements to:"
+msgstr ""
+
+#: includes/AdminTools.php:450
+msgid "Upload & Import Bundle"
+msgstr ""
+
+#: includes/AdminTools.php:476
+msgid ""
+"Warning: These are destructive actions. Please backup your database before "
+"proceeding."
+msgstr ""
+
+#: includes/AdminTools.php:478
+msgid "Delete ad stats"
+msgstr ""
+
+#. translators: %1$s: open strong and em tags; %2$s: close strong and em tags
+#: includes/AdminTools.php:481
+#, php-format
+msgid ""
+"Use this tool to delete stats for a specific ad ID.%1$sTo find the ID for an "
+"active ad, view the ad under Ad Commander -> Manage Ads. The ID is located "
+"in the URL of the ad, and displayed in the shortcode and template function."
+"%2$sIDs for ads that no longer exist can be find in Reports. The ad will say "
+"\"Ad Not Found (ID: #)\"."
+msgstr ""
+
+#: includes/AdminTools.php:492
+msgid "Ad ID"
+msgstr ""
+
+#: includes/AdminTools.php:497
+msgid "Enter the ad ID to delete."
+msgstr ""
+
+#: includes/AdminTools.php:501 includes/AdminTools.php:545
+#: includes/AdminTools.php:597
+msgid "Confirm delete"
+msgstr ""
+
+#: includes/AdminTools.php:506
+msgid ""
+"I understand I am deleting statistics for an ad. This action cannot be "
+"undone."
+msgstr ""
+
+#: includes/AdminTools.php:509
+msgid "Delete ad statistics"
+msgstr ""
+
+#: includes/AdminTools.php:525
+msgid "Delete rogue stats"
+msgstr ""
+
+#. translators: %1$s: open strong and em tags; %2$s: close strong and em tags
+#: includes/AdminTools.php:528
+#, php-format
+msgid ""
+"A stat is considered rogue if an ad no longer exists. Stats for ads in the "
+"trash are %1$snot%2$s considered rogue. Ads must be completely deleted."
+msgstr ""
+
+#. translators: %1$s the total number of query results
+#: includes/AdminTools.php:534
+#, php-format
+msgid "You currently have %1$s rogue stat entries."
+msgstr ""
+
+#: includes/AdminTools.php:563
+msgid ""
+"I understand I am deleting statistics for ads that no longer exist. These "
+"stats will no longer be included in Reports. This action cannot be undone."
+msgstr ""
+
+#: includes/AdminTools.php:566
+msgid "Delete rogue statistics"
+msgstr ""
+
+#: includes/AdminTools.php:586
+msgid "Reset all stats"
+msgstr ""
+
+#: includes/AdminTools.php:602
+msgid ""
+"I understand I am deleting statistics for all ads and that this action "
+"cannot be undone."
+msgstr ""
+
+#: includes/AdminTools.php:605
+msgid "Reset all statistics"
+msgstr ""
+
+#: includes/Export.php:111
+msgid ""
+"Your export was completed successfully. You can download your bundle below."
+msgstr ""
+
+#: includes/Export.php:129
+msgid "Your export failed to process."
+msgstr ""
+
+#: includes/ImportBundle.php:28
+msgid "Your import was completed successfully."
+msgstr ""
+
+#: includes/ImportBundle.php:46
+msgid "Your import failed to process."
+msgstr ""
+
+#: includes/StatsDelete.php:31
+msgid "Your stats were successfully deleted."
+msgstr ""
+
+#: includes/StatsDelete.php:49
+msgid "We were unable to delete your stats."
+msgstr ""
+
+#. Plugin Name of the plugin/theme
+msgid "Ad Commander Tools"
+msgstr ""
+
+#. Plugin URI of the plugin/theme
+msgid "https://wpadcommander.com"
+msgstr ""
+
+#. Description of the plugin/theme
+msgid ""
+"Add-on for the Ad Commander plugin that allows you to import, export, and "
+"manage ad statistics."
+msgstr ""
+
+#. Author of the plugin/theme
+msgid "Wild Operation"
+msgstr ""
+
+#. Author URI of the plugin/theme
+msgid "https://wildoperation.com"
+msgstr ""
