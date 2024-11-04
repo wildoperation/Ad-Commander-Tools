@@ -473,7 +473,7 @@ class AdminTools extends Admin {
 	 * @return void
 	 */
 	private function delete_stats_specific_id() {
-		$this->info( esc_html__( 'Warning: These are destructive actions. Please backup your database before proceeding.', 'ad-commander' ), array( 'classes' => 'adcmdr-notification adcmdr-notice-warning' ) );
+		$this->info( esc_html__( 'Warning: These are destructive actions. Please backup your database before proceeding.', 'ad-commander-tools' ), array( 'classes' => 'adcmdr-notification adcmdr-notice-warning' ) );
 		?>
 		<h2><?php esc_html_e( 'Delete ad stats', 'ad-commander-tools' ); ?></h2>
 		<?php
