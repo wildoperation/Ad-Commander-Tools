@@ -11,7 +11,7 @@ class AdCommanderTools {
 	 * @return string
 	 */
 	public static function version() {
-		return '1.0.5';
+		return '1.1.0';
 	}
 
 	/**
@@ -20,7 +20,7 @@ class AdCommanderTools {
 	 * @return string
 	 */
 	public static function required_adcmdr_version() {
-		return '1.1.4';
+		return '1.4.0';
 	}
 
 	/**

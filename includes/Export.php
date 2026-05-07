@@ -204,14 +204,18 @@ class Export extends AdminTools {
 
 		$this->wo_meta = new WOMeta( AdCommander::ns() );
 
-		$ads        = $this->process_ads();
-		$groups     = $this->process_groups();
-		$placements = $this->process_placements();
+		$ads         = $this->process_ads();
+		$groups      = $this->process_groups();
+		$campaigns   = $this->process_campaigns();
+		$advertisers = $this->process_advertisers();
+		$placements  = $this->process_placements();
 
 		$bundles = array(
-			'adcmdr_ads'        => $ads,
-			'adcmdr_groups'     => $groups,
-			'adcmdr_placements' => $placements,
+			'adcmdr_ads'         => $ads,
+			'adcmdr_groups'      => $groups,
+			'adcmdr_campaigns'   => $campaigns,
+			'adcmdr_advertisers' => $advertisers,
+			'adcmdr_placements'  => $placements,
 		);
 
 		if ( isset( $_REQUEST['adcmdr_export_include_stats'] ) && Util::truthy( sanitize_text_field( wp_unslash( $_REQUEST['adcmdr_export_include_stats'] ) ) ) ) {
@@ -376,6 +380,102 @@ class Export extends AdminTools {
 	}
 
 	/**
+	 * Query and prepare campaigns for export.
+	 *
+	 * @return array
+	 */
+	private function process_campaigns() {
+		$headings            = array_keys( UtilTools::headings( 'campaigns' ) );
+		$processed_campaigns = array();
+
+		$campaigns = Query::campaigns();
+
+		if ( $campaigns ) {
+			$home_url = home_url();
+
+			foreach ( $campaigns as $campaign ) {
+				$meta = array();
+
+				$this_campaign = array(
+					'source'      => 'adcmdr_export',
+					'source_site' => $home_url,
+				);
+
+				foreach ( $headings as $heading ) {
+					if ( isset( $this_campaign[ $heading ] ) ) {
+						continue;
+					}
+
+					$value = '';
+
+					if ( isset( $campaign->$heading ) ) {
+						$value = $campaign->$heading;
+					} elseif ( isset( $meta[ $heading ] ) ) {
+						$value = $meta[ $heading ];
+					}
+
+					$this_campaign[ $heading ] = maybe_serialize( $value );
+				}
+
+				$processed_campaigns[] = $this_campaign;
+			}
+		}
+
+		return array(
+			'headings' => $headings,
+			'rows'     => $processed_campaigns,
+		);
+	}
+
+	/**
+	 * Query and prepare advertisers for export.
+	 *
+	 * @return array
+	 */
+	private function process_advertisers() {
+		$headings              = array_keys( UtilTools::headings( 'advertisers' ) );
+		$processed_advertisers = array();
+
+		$advertisers = Query::advertisers();
+
+		if ( $advertisers ) {
+			$home_url = home_url();
+
+			foreach ( $advertisers as $advertiser ) {
+				$meta = array();
+
+				$this_advertiser = array(
+					'source'      => 'adcmdr_export',
+					'source_site' => $home_url,
+				);
+
+				foreach ( $headings as $heading ) {
+					if ( isset( $this_advertiser[ $heading ] ) ) {
+						continue;
+					}
+
+					$value = '';
+
+					if ( isset( $advertiser->$heading ) ) {
+						$value = $advertiser->$heading;
+					} elseif ( isset( $meta[ $heading ] ) ) {
+						$value = $meta[ $heading ];
+					}
+
+					$this_advertiser[ $heading ] = maybe_serialize( $value );
+				}
+
+				$processed_advertisers[] = $this_advertiser;
+			}
+		}
+
+		return array(
+			'headings' => $headings,
+			'rows'     => $processed_advertisers,
+		);
+	}
+
+	/**
 	 * Query and prepare ads for export.
 	 *
 	 * @return array
@@ -390,13 +490,31 @@ class Export extends AdminTools {
 			$home_url = home_url();
 
 			foreach ( $ads as $ad ) {
-				$meta         = $this->wo_meta->get_post_meta( $ad->ID, AdPostMeta::post_meta_keys() );
-				$terms        = get_the_terms( $ad->ID, AdCommander::tax_group() );
-				$terms_export = array();
+				$meta                = $this->wo_meta->get_post_meta( $ad->ID, AdPostMeta::post_meta_keys() );
+				$terms_groups        = get_the_terms( $ad->ID, AdCommander::tax_group() );
+				$terms_groups_export = array();
 
-				if ( $terms && ! empty( $terms ) ) {
-					foreach ( $terms as $term ) {
-						$terms_export[ $term->term_id ] = $term->name;
+				if ( $terms_groups && ! empty( $terms_groups ) ) {
+					foreach ( $terms_groups as $term ) {
+						$terms_groups_export[ $term->term_id ] = $term->name;
+					}
+				}
+
+				$terms_campaigns        = get_the_terms( $ad->ID, AdCommander::tax_campaign() );
+				$terms_campaigns_export = array();
+
+				if ( $terms_campaigns && ! empty( $terms_campaigns ) ) {
+					foreach ( $terms_campaigns as $term ) {
+						$terms_campaigns_export[ $term->term_id ] = $term->name;
+					}
+				}
+
+				$terms_advertisers        = get_the_terms( $ad->ID, AdCommander::tax_advertiser() );
+				$terms_advertisers_export = array();
+
+				if ( $terms_advertisers && ! empty( $terms_advertisers ) ) {
+					foreach ( $terms_advertisers as $term ) {
+						$terms_advertisers_export[ $term->term_id ] = $term->name;
 					}
 				}
 
@@ -413,7 +531,9 @@ class Export extends AdminTools {
 					'source_site'        => $home_url,
 					'featured_image_url' => $featured_image_url,
 					'thumbnail_id'       => $thumbnail_id,
-					'groups'             => maybe_serialize( $terms_export ),
+					'groups'             => maybe_serialize( $terms_groups_export ),
+					'campaigns'          => maybe_serialize( $terms_campaigns_export ),
+					'advertisers'        => maybe_serialize( $terms_advertisers_export ),
 				);
 
 				foreach ( $headings as $heading ) {

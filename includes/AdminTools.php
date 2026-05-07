@@ -373,10 +373,12 @@ class AdminTools extends Admin {
 	 */
 	private function import_bundle_options() {
 		$options = array(
-			'ads'        => esc_html__( 'Ads', 'ad-commander-tools' ),
-			'groups'     => esc_html__( 'Groups', 'ad-commander-tools' ),
-			'placements' => esc_html__( 'Placements', 'ad-commander-tools' ),
-			'stats'      => esc_html__( 'Stats', 'ad-commander-tools' ),
+			'ads'         => esc_html__( 'Ads', 'ad-commander-tools' ),
+			'groups'      => esc_html__( 'Groups', 'ad-commander-tools' ),
+			'campaigns'   => esc_html__( 'Campaigns', 'ad-commander-tools' ),
+			'advertisers' => esc_html__( 'Advertisers', 'ad-commander-tools' ),
+			'placements'  => esc_html__( 'Inserts', 'ad-commander-tools' ),
+			'stats'       => esc_html__( 'Stats', 'ad-commander-tools' ),
 		);
 
 		$id = $this->sf()->key( 'import_bundle_options' );

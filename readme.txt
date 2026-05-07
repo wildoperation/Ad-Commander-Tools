@@ -2,8 +2,8 @@
 Contributors: wildoperation, timstl
 Tags: advertising, banners, rotate, adsense, amp
 Requires at least: 6.2
-Tested up to: 7.0
-Stable tag: 1.0.5
+Tested up to: 6.9
+Stable tag: 1.1.0
 Requires PHP: 7.4
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -18,15 +18,20 @@ This plugin is an add-on for [Ad Commander](https://wordpress.org/plugins/ad-com
 With Ad Commander Tools you can export your ads, groups, placements, and stats into a bundle, import bundles into other sites, and reset ad statistics for individual ads or all ads.
 
 * Export Ad Commander content with or with statistics
-* Selectively import ads, groups, placements, stats into Ad Commander via CSVs
+* Selectively import ads, groups, campaigns, advertisers, inserts, stats into Ad Commander via CSVs
 * Set imported content to draft or match the status of the exported content
 * Delete impressions and clicks for a specific ad
 * Delete impressions and clicks for ads that no longer exist
 * Reset all impressions and clicks for all ads
 
 == Changelog ==
+= 1.1.0 =
+* Support for Ad Commander and Ad Commander Pro 1.4.0
+* Support for importing campaigns and advertisers
+* Fix typo in readme
+
 = 1.0.5 =
-* Support for WordPress 7.0
+* Support for WordPress 6.9
 
 = 1.0.4 =
 * Support for WordPress 6.7

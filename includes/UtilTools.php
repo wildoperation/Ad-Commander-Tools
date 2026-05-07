@@ -48,6 +48,8 @@ class UtilTools {
 			$meta    = AdPostMeta::post_meta_keys();
 			$extra   = array(
 				'groups'             => array( 'type' => 'str' ),
+				'campaigns'          => array( 'type' => 'str' ),
+				'advertisers'        => array( 'type' => 'str' ),
 				'source'             => array( 'type' => 'str' ),
 				'source_site'        => array( 'type' => 'str' ),
 				'featured_image_url' => array( 'type' => 'str' ),
@@ -60,6 +62,28 @@ class UtilTools {
 				'slug'    => array( 'type' => 'str' ),
 			);
 			$meta    = GroupTermMeta::tax_group_meta_keys();
+			$extra   = array(
+				'source'      => array( 'type' => 'str' ),
+				'source_site' => array( 'type' => 'str' ),
+			);
+		} elseif ( $type === 'campaigns' ) {
+			$primary = array(
+				'term_id' => array( 'type' => 'int' ),
+				'name'    => array( 'type' => 'str' ),
+				'slug'    => array( 'type' => 'str' ),
+			);
+			$meta    = array();
+			$extra   = array(
+				'source'      => array( 'type' => 'str' ),
+				'source_site' => array( 'type' => 'str' ),
+			);
+		} elseif ( $type === 'advertisers' ) {
+			$primary = array(
+				'term_id' => array( 'type' => 'int' ),
+				'name'    => array( 'type' => 'str' ),
+				'slug'    => array( 'type' => 'str' ),
+			);
+			$meta    = array();
 			$extra   = array(
 				'source'      => array( 'type' => 'str' ),
 				'source_site' => array( 'type' => 'str' ),

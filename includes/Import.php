@@ -31,11 +31,40 @@ class Import extends AdminTools {
 	protected $imported_group_ids;
 
 	/**
+	 * An array that associates imported campaign IDs with new campaign IDs.
+	 *
+	 * @var array
+	 */
+	protected $imported_campaign_ids;
+
+	/**
+	 * An array that associates imported advertiser IDs with new advertiser IDs.
+	 *
+	 * @var array
+	 */
+	protected $imported_advertiser_ids;
+
+	/**
 	 * Group meta to update after the ad import.
 	 *
 	 * @var array
 	 */
 	protected $group_meta_after_ads;
+
+
+	/**
+	 * Campaign meta to update after the campaign import.
+	 *
+	 * @var array
+	 */
+	protected $campaign_meta_after_ads;
+
+	/**
+	 * Advertiser meta to update after the advertiser import.
+	 *
+	 * @var array
+	 */
+	protected $advertiser_meta_after_ads;
 
 	/**
 	 * An instance of WOMeta.
@@ -89,7 +118,7 @@ class Import extends AdminTools {
 	 * @return array
 	 */
 	protected function all_import_types() {
-		return array( 'groups', 'ads', 'placements', 'stats' );
+		return array( 'groups', 'campaigns', 'advertisers', 'ads', 'placements', 'stats' );
 	}
 
 	/**
@@ -105,6 +134,14 @@ class Import extends AdminTools {
 		switch ( $import_type ) {
 			case 'groups':
 				$this->import_groups( $this->process( $data, 'groups' ), $args );
+				break;
+
+			case 'advertisers':
+				$this->import_advertisers( $this->process( $data, 'advertisers' ), $args );
+				break;
+
+			case 'campaigns':
+				$this->import_campaigns( $this->process( $data, 'campaigns' ), $args );
 				break;
 
 			case 'ads':
@@ -137,6 +174,18 @@ class Import extends AdminTools {
 				$primary_keys     = array_keys( UtilTools::headings( 'groups', true, false, false, false ) );
 				$meta_keys        = array_keys( UtilTools::headings( 'groups', false, true, true, false ) );
 				$all_allowed_keys = UtilTools::headings( 'groups', true, true, true, false );
+				break;
+
+			case 'campaigns':
+				$primary_keys     = array_keys( UtilTools::headings( 'campaigns', true, false, false, false ) );
+				$meta_keys        = array_keys( UtilTools::headings( 'campaigns', false, true, true, false ) );
+				$all_allowed_keys = UtilTools::headings( 'campaigns', true, true, true, false );
+				break;
+
+			case 'advertisers':
+				$primary_keys     = array_keys( UtilTools::headings( 'advertisers', true, false, false, false ) );
+				$meta_keys        = array_keys( UtilTools::headings( 'advertisers', false, true, true, false ) );
+				$all_allowed_keys = UtilTools::headings( 'advertisers', true, true, true, false );
 				break;
 
 			case 'ads':
@@ -223,7 +272,12 @@ class Import extends AdminTools {
 					$data[ $this_key ] = maybe_unserialize( $data[ $this_key ] );
 				}
 
-				if ( isset( $data[ $this_key ] ) && isset( $allowed_keyvalue['children'] ) ) {
+				$deprefixed_key = $this->deprefix_key( $this_key );
+				if ( isset( $data[ $this_key ] ) && in_array( $deprefixed_key, array( 'groups', 'campaigns', 'advertisers' ), true ) ) {
+					$value = is_array( $data[ $this_key ] ) ? $data[ $this_key ] : maybe_unserialize( $data[ $this_key ] );
+					$value = is_array( $value ) ? $value : array();
+				} elseif ( isset( $data[ $this_key ] ) && isset( $allowed_keyvalue['children'] ) ) {
+
 					/**
 					 * This allowed_keyvalue has children.
 					 * This is often used with repeater fields that have sub-fields.
@@ -454,6 +508,194 @@ class Import extends AdminTools {
 	}
 
 	/**
+	 * Import Campaigns. Assumes data has already been processed, formatted, and sanitized.
+	 *
+	 * @param array $data Array of terms and term meta.
+	 *
+	 * @return void|bool
+	 */
+	protected function import_campaigns( $data ) {
+		if ( ! $data || empty( $data ) ) {
+			return false;
+		}
+
+		foreach ( $data as $campaign ) {
+			$term                = $campaign['item'];
+			$meta                = $campaign['meta'];
+			$allowed_import_keys = array( 'import_id' );
+
+			/**
+			 * Save the old term data as meta
+			 */
+			$meta['import_id'] = $this->current_import_id ? $this->current_import_id : time();
+
+			foreach ( $term as $term_key => $term_value ) {
+				if ( isset( $meta[ 'imported_' . $term_key ] ) ) {
+					continue;
+				}
+
+				$meta[ 'imported_' . $term_key ] = $term_value;
+				$allowed_import_keys[]           = 'imported_' . $term_key;
+			}
+
+			/**
+			 * Prepare term
+			 */
+			$new_campaign_args = array(
+				'description' => null,
+				'parent'      => null,
+			);
+
+			$term_title = $term['name'];
+
+			while ( term_exists( $term_title, AdCommander::tax_campaign() ) ) {
+				$term_title .= ' ' . $meta['import_id'];
+			}
+
+			$new_term = wp_insert_term( $term_title, AdCommander::tax_campaign(), $new_campaign_args );
+
+			if ( ! $new_term || is_wp_error( $new_term ) ) {
+				continue;
+			}
+
+			// The ad IDs won't match up, so we update this later.
+			$do_not_copy_meta  = array();
+			$allowed_meta_keys = array_merge( array_keys( UtilTools::headings( 'campaigns', false, true, true, false ) ), $allowed_import_keys );
+
+			foreach ( $meta as $meta_key => $meta_value ) {
+				if ( ! in_array( $meta_key, $allowed_meta_keys, true ) ) {
+					continue;
+				}
+
+				if ( in_array( $meta_key, $do_not_copy_meta, true ) ) {
+					if ( ! $meta_value || isset( $meta[ 'imported_' . $meta_key ] ) ) {
+						continue;
+					}
+
+					$meta_key            = 'imported_' . $meta_key;
+					$allowed_meta_keys[] = $meta_key;
+
+					if ( ! isset( $this->campaign_meta_after_ads[ $new_term['term_id'] ] ) ) {
+						$this->campaign_meta_after_ads[ $new_term['term_id'] ] = array();
+					}
+
+					$this->campaign_meta_after_ads[ $new_term['term_id'] ][ $meta_key ] = $meta_value;
+				}
+
+				$meta_key = $this->wo_meta()->make_key( $meta_key );
+
+				if ( $meta_value === '' ) {
+					$meta_value = null;
+				}
+
+				delete_term_meta( $new_term['term_id'], $meta_key );
+				add_term_meta( $new_term['term_id'], $meta_key, $meta_value );
+			}
+
+			/**
+			 * Store campaign ID for syncing to campaigns later.
+			 */
+			if ( isset( $meta['imported_term_id'] ) ) {
+				$this->imported_campaign_ids[ 'imported_term_id_' . $meta['imported_term_id'] ] = $new_term['term_id'];
+			}
+		}
+	}
+
+	/**
+	 * Import Advertisers. Assumes data has already been processed, formatted, and sanitized.
+	 *
+	 * @param array $data Array of terms and term meta.
+	 *
+	 * @return void|bool
+	 */
+	protected function import_advertisers( $data ) {
+		if ( ! $data || empty( $data ) ) {
+			return false;
+		}
+
+		foreach ( $data as $advertiser ) {
+			$term                = $advertiser['item'];
+			$meta                = $advertiser['meta'];
+			$allowed_import_keys = array( 'import_id' );
+
+			/**
+			 * Save the old term data as meta
+			 */
+			$meta['import_id'] = $this->current_import_id ? $this->current_import_id : time();
+
+			foreach ( $term as $term_key => $term_value ) {
+				if ( isset( $meta[ 'imported_' . $term_key ] ) ) {
+					continue;
+				}
+
+				$meta[ 'imported_' . $term_key ] = $term_value;
+				$allowed_import_keys[]           = 'imported_' . $term_key;
+			}
+
+			/**
+			 * Prepare term
+			 */
+			$new_advertiser_args = array(
+				'description' => null,
+				'parent'      => null,
+			);
+
+			$term_title = $term['name'];
+
+			while ( term_exists( $term_title, AdCommander::tax_advertiser() ) ) {
+				$term_title .= ' ' . $meta['import_id'];
+			}
+
+			$new_term = wp_insert_term( $term_title, AdCommander::tax_advertiser(), $new_advertiser_args );
+
+			if ( ! $new_term || is_wp_error( $new_term ) ) {
+				continue;
+			}
+
+			// The ad IDs won't match up, so we update this later.
+			$do_not_copy_meta  = array();
+			$allowed_meta_keys = array_merge( array_keys( UtilTools::headings( 'advertisers', false, true, true, false ) ), $allowed_import_keys );
+
+			foreach ( $meta as $meta_key => $meta_value ) {
+				if ( ! in_array( $meta_key, $allowed_meta_keys, true ) ) {
+					continue;
+				}
+
+				if ( in_array( $meta_key, $do_not_copy_meta, true ) ) {
+					if ( ! $meta_value || isset( $meta[ 'imported_' . $meta_key ] ) ) {
+						continue;
+					}
+
+					$meta_key            = 'imported_' . $meta_key;
+					$allowed_meta_keys[] = $meta_key;
+
+					if ( ! isset( $this->advertiser_meta_after_ads[ $new_term['term_id'] ] ) ) {
+						$this->advertiser_meta_after_ads[ $new_term['term_id'] ] = array();
+					}
+
+					$this->advertiser_meta_after_ads[ $new_term['term_id'] ][ $meta_key ] = $meta_value;
+				}
+
+				$meta_key = $this->wo_meta()->make_key( $meta_key );
+
+				if ( $meta_value === '' ) {
+					$meta_value = null;
+				}
+
+				delete_term_meta( $new_term['term_id'], $meta_key );
+				add_term_meta( $new_term['term_id'], $meta_key, $meta_value );
+			}
+
+			/**
+			 * Store advertiser ID for syncing to campaigns later.
+			 */
+			if ( isset( $meta['imported_term_id'] ) ) {
+				$this->imported_advertiser_ids[ 'imported_term_id_' . $meta['imported_term_id'] ] = $new_term['term_id'];
+			}
+		}
+	}
+
+	/**
 	 * Update group meta with newly imported post IDs.
 	 *
 	 * @return void
@@ -503,6 +745,110 @@ class Import extends AdminTools {
 			}
 		}
 	}
+
+
+	/**
+	 * Update campaign meta with newly imported post IDs.
+	 *
+	 * @return void
+	 */
+	private function import_campaign_post_relationships() {
+
+		if ( ! empty( $this->campaign_meta_after_ads ) ) {
+			$key_is_post_id = array();
+
+			foreach ( $this->campaign_meta_after_ads as $term_id => $meta ) {
+				foreach ( $meta as $meta_key => $meta_value ) {
+					$meta_key = str_replace( 'imported_', '', $meta_key );
+					$new_meta = array();
+
+					/**
+					 * This currently only works if the meta is an array, but we don't currently have anything that wouldn't be an array...
+					 */
+					if ( is_array( $meta_value ) ) {
+
+						foreach ( $meta_value as $subkey => $subvalue ) {
+							if ( in_array( $meta_key, $key_is_post_id, true ) ) {
+								$post_id = $subkey;
+							} else {
+								$post_id = $subvalue;
+							}
+
+							if ( ! isset( $this->imported_ad_ids[ 'imported_post_id_' . $post_id ] ) ) {
+								continue;
+							}
+
+							$new_post_id = $this->imported_ad_ids[ 'imported_post_id_' . $post_id ];
+
+							if ( in_array( $meta_key, $key_is_post_id, true ) ) {
+								$new_meta[ $new_post_id ] = $subvalue;
+							} else {
+								$new_meta[] = $new_post_id;
+							}
+						}
+					}
+
+					if ( ! empty( $new_meta ) ) {
+						$new_key = $this->wo_meta()->make_key( $meta_key );
+						delete_term_meta( $term_id, $new_key );
+						add_term_meta( $term_id, $new_key, $new_meta );
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Update advertiser meta with newly imported post IDs.
+	 *
+	 * @return void
+	 */
+	private function import_advertiser_post_relationships() {
+
+		if ( ! empty( $this->advertiser_meta_after_ads ) ) {
+			$key_is_post_id = array();
+
+			foreach ( $this->advertiser_meta_after_ads as $term_id => $meta ) {
+				foreach ( $meta as $meta_key => $meta_value ) {
+					$meta_key = str_replace( 'imported_', '', $meta_key );
+					$new_meta = array();
+
+					/**
+					 * This currently only works if the meta is an array, but we don't currently have anything that wouldn't be an array...
+					 */
+					if ( is_array( $meta_value ) ) {
+
+						foreach ( $meta_value as $subkey => $subvalue ) {
+							if ( in_array( $meta_key, $key_is_post_id, true ) ) {
+								$post_id = $subkey;
+							} else {
+								$post_id = $subvalue;
+							}
+
+							if ( ! isset( $this->imported_ad_ids[ 'imported_post_id_' . $post_id ] ) ) {
+								continue;
+							}
+
+							$new_post_id = $this->imported_ad_ids[ 'imported_post_id_' . $post_id ];
+
+							if ( in_array( $meta_key, $key_is_post_id, true ) ) {
+								$new_meta[ $new_post_id ] = $subvalue;
+							} else {
+								$new_meta[] = $new_post_id;
+							}
+						}
+					}
+
+					if ( ! empty( $new_meta ) ) {
+						$new_key = $this->wo_meta()->make_key( $meta_key );
+						delete_term_meta( $term_id, $new_key );
+						add_term_meta( $term_id, $new_key, $new_meta );
+					}
+				}
+			}
+		}
+	}
+
 
 	/**
 	 * Import a post (ad or placement)
@@ -598,11 +944,12 @@ class Import extends AdminTools {
 			/**
 			 * Groups
 			 */
-			if ( isset( $args['importing_types'] ) && in_array( 'groups', $args['importing_types'], true ) && isset( $data['meta']['groups'] ) && ! empty( $data['meta']['groups'] ) ) {
+			$groups = isset( $data['meta']['groups'] ) ? maybe_unserialize( $data['meta']['groups'] ) : array();
+			if ( isset( $args['importing_types'] ) && in_array( 'groups', $args['importing_types'], true ) && is_array( $groups ) && ! empty( $groups ) ) {
 
 				$term_ids = array();
 
-				foreach ( $data['meta']['groups'] as $imported_term_id => $imported_group_name ) {
+				foreach ( $groups as $imported_term_id => $imported_group_name ) {
 					if ( isset( $this->imported_group_ids[ 'imported_term_id_' . $imported_term_id ] ) ) {
 						$term_ids[] = $this->imported_group_ids[ 'imported_term_id_' . $imported_term_id ];
 					}
@@ -610,6 +957,44 @@ class Import extends AdminTools {
 
 				if ( ! empty( $term_ids ) ) {
 					wp_set_object_terms( $new_post_id, $term_ids, AdCommander::tax_group() );
+				}
+			}
+
+			/**
+			 * Campaigns
+			 */
+			$campaigns = isset( $data['meta']['campaigns'] ) ? maybe_unserialize( $data['meta']['campaigns'] ) : array();
+			if ( isset( $args['importing_types'] ) && in_array( 'campaigns', $args['importing_types'], true ) && is_array( $campaigns ) && ! empty( $campaigns ) ) {
+
+				$term_ids = array();
+
+				foreach ( $campaigns as $imported_term_id => $imported_campaign_name ) {
+					if ( isset( $this->imported_campaign_ids[ 'imported_term_id_' . $imported_term_id ] ) ) {
+						$term_ids[] = $this->imported_campaign_ids[ 'imported_term_id_' . $imported_term_id ];
+					}
+				}
+
+				if ( ! empty( $term_ids ) ) {
+					wp_set_object_terms( $new_post_id, $term_ids, AdCommander::tax_campaign() );
+				}
+			}
+
+			/**
+			 * Advertisers
+			 */
+			$advertisers = isset( $data['meta']['advertisers'] ) ? maybe_unserialize( $data['meta']['advertisers'] ) : array();
+			if ( isset( $args['importing_types'] ) && in_array( 'advertisers', $args['importing_types'], true ) && is_array( $advertisers ) && ! empty( $advertisers ) ) {
+
+				$term_ids = array();
+
+				foreach ( $advertisers as $imported_term_id => $imported_advertiser_name ) {
+					if ( isset( $this->imported_advertiser_ids[ 'imported_term_id_' . $imported_term_id ] ) ) {
+						$term_ids[] = $this->imported_advertiser_ids[ 'imported_term_id_' . $imported_term_id ];
+					}
+				}
+
+				if ( ! empty( $term_ids ) ) {
+					wp_set_object_terms( $new_post_id, $term_ids, AdCommander::tax_advertiser() );
 				}
 			}
 		}
@@ -683,6 +1068,8 @@ class Import extends AdminTools {
 		}
 
 		$this->import_group_post_relationships();
+		$this->import_advertiser_post_relationships();
+		$this->import_campaign_post_relationships();
 	}
 
 	/**
