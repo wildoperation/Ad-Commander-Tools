@@ -121,6 +121,7 @@ class Filesystem {
 			$free_space = @disk_free_space( $tmp );
 
 			if ( $free_space && ( $free_space / MB_IN_BYTES ) >= 200 ) {
+				wo_log( '[ADCMDR] Using tmp dir: ' . $tmp );
 				return $tmp;
 			}
 		}
@@ -128,6 +129,7 @@ class Filesystem {
 		$tmp = $this->maybe_create_dir( trailingslashit( $fallback_dir ) );
 
 		if ( $tmp && @is_dir( $tmp ) && wp_is_writable( $tmp ) ) {
+			wo_log( '[ADCMDR] Using fallback tmp dir: ' . $tmp );
 			return $tmp;
 		}
 
