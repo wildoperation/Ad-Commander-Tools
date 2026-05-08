@@ -97,7 +97,7 @@ class ImportBundle extends Import {
 		! isset( $_FILES['adcmdr_import_bundle_file'] ) ||
 		( isset( $_FILES['adcmdr_import_bundle_file'] ) && isset( $_FILES['adcmdr_import_bundle_file']['tmp_name'] ) && ! sanitize_text_field( $_FILES['adcmdr_import_bundle_file']['tmp_name'] ) ) ||
 		( isset( $_FILES['adcmdr_import_bundle_file'] ) && isset( $_FILES['adcmdr_import_bundle_file']['name'] ) && ! sanitize_text_field( $_FILES['adcmdr_import_bundle_file']['name'] ) ) ) {
-			wo_log( 'Import bundle $_FILES data missing or security check failed' );
+			wo_log( '[ADCMDR] Import bundle $_FILES data missing or security check failed' );
 			wo_log( $_FILES );
 			$this->redirect( $import_nonce, 'bundle', false );
 		}
@@ -113,7 +113,7 @@ class ImportBundle extends Import {
 		if ( ! $basename ||
 		! isset( $_REQUEST['adcmdr_import_bundle_options'] ) ||
 		empty( $_REQUEST['adcmdr_import_bundle_options'] ) ) {
-			wo_log( 'Import bundle options missing or basename not found' );
+			wo_log( '[ADCMDR] Import bundle options missing or basename not found' );
 			wo_log( $basename );
 			$this->cleanup_and_redirect( $import_nonce, $bundle_tmp );
 		}
@@ -121,7 +121,7 @@ class ImportBundle extends Import {
 		if ( ! $file_type || empty( $file_type ) || ( strtolower( $file_type['ext'] ) !== 'zip' && strtolower( $file_type['type'] ) !== 'application/zip' ) ) {
 			$parts = explode( '.', $bundle_name );
 			if ( ! is_array( $parts ) || count( $parts ) < 2 || strtolower( $parts[1] ) !== 'zip' ) {
-				wo_log( 'Import bundle file type not accepted' );
+				wo_log( '[ADCMDR] Import bundle file type not accepted' );
 				wo_log( $file_type );
 				wo_log( $bundle_name );
 				$this->cleanup_and_redirect( $import_nonce, $bundle_tmp );
@@ -139,21 +139,21 @@ class ImportBundle extends Import {
 		$filesystem = Filesystem::instance();
 
 		if ( ! $filesystem->init_wp_filesystem() ) {
-			wo_log( 'could not initiate WordPress filesystem' );
+			wo_log( '[ADCMDR] could not initiate WordPress filesystem' );
 			$this->cleanup_and_redirect( $import_nonce, $bundle_tmp );
 		}
 
 		$tmp_dir = $filesystem->wp_tmp_dir( self::import_dir() );
 
 		if ( ! $tmp_dir ) {
-			wo_log( 'could not locate WordPress tmp directory' );
+			wo_log( '[ADCMDR] could not locate WordPress tmp directory' );
 			$this->cleanup_and_redirect( $import_nonce, $bundle_tmp );
 		}
 
 		$extract_to_dir = $filesystem->maybe_create_dir( trailingslashit( $tmp_dir ) . $basename );
 
 		if ( ! $extract_to_dir ) {
-			wo_log( 'could not locate extraction directory' );
+			wo_log( '[ADCMDR] could not locate extraction directory' );
 			$this->cleanup_and_redirect( $import_nonce, $bundle_tmp );
 		}
 
@@ -161,11 +161,11 @@ class ImportBundle extends Import {
 		 * Unzip
 		 */
 		$zip = new \ZipArchive();
-		if ( $zip->open( $bundle_tmp ) ) {
+		if ( $zip->open( $bundle_tmp ) === true ) {
 			$zip->extractTo( $extract_to_dir );
 			$zip->close();
 		} else {
-			wo_log( 'could not unzip file' );
+			wo_log( '[ADCMDR] could not unzip file' );
 			$this->cleanup_and_redirect( $import_nonce, $bundle_tmp, $extract_to_dir );
 		}
 
@@ -177,11 +177,13 @@ class ImportBundle extends Import {
 		$filelist = $wp_filesystem->dirlist( $extract_to_dir, false );
 
 		if ( is_array( $filelist ) ) {
+			wo_log( '[ADCMDR] filtering file list:' );
+			wo_log( $filelist );
 			$filelist = array_filter( $filelist, fn ( $file ) => ( $file['type'] === 'f' && stripos( $file['name'], '.csv' ) !== false && stripos( $file['name'], 'adcmdr_' ) !== false ) );
 		}
 
 		if ( ! $filelist || ! is_array( $filelist ) || empty( $filelist ) ) {
-			wo_log( 'could not find any valid import files in file list' );
+			wo_log( '[ADCMDR] could not find any valid import files in file list' );
 			wo_log( $filelist );
 			$this->cleanup_and_redirect( $import_nonce, $bundle_tmp, $extract_to_dir );
 		}

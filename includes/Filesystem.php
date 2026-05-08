@@ -118,17 +118,17 @@ class Filesystem {
 		$tmp = get_temp_dir();
 
 		if ( wp_is_writable( $tmp ) ) {
-			return $tmp;
-		}
+			$free_space = @disk_free_space( $tmp );
 
-		$free_space = @disk_free_space( get_temp_dir() );
-
-		if ( ! $free_space || ( $free_space / MB_IN_BYTES ) < 200 ) {
-			$tmp = $this->maybe_create_dir( trailingslashit( $fallback_dir ) );
-
-			if ( $tmp && @is_dir( $tmp ) && wp_is_writable( $tmp ) ) {
+			if ( ! $free_space || ( $free_space / MB_IN_BYTES ) >= 200 ) {
 				return $tmp;
 			}
+		}
+
+		$tmp = $this->maybe_create_dir( trailingslashit( $fallback_dir ) );
+
+		if ( $tmp && @is_dir( $tmp ) && wp_is_writable( $tmp ) ) {
+			return $tmp;
 		}
 
 		return false;

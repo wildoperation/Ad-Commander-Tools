@@ -311,7 +311,7 @@ class Export extends AdminTools {
 				wp_delete_file( $dir . $zip_filename );
 			}
 
-			if ( ! $zip->open( $dir . $zip_filename, \ZipArchive::CREATE ) ) {
+			if ( $zip->open( $dir . $zip_filename, \ZipArchive::CREATE ) !== true ) {
 				return false;
 			}
 

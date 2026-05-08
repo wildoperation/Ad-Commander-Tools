@@ -11,7 +11,7 @@ class AdCommanderTools {
 	 * @return string
 	 */
 	public static function version() {
-		return '1.1.0';
+		return '1.1.1';
 	}
 
 	/**
