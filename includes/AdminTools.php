@@ -217,6 +217,7 @@ class AdminTools extends Admin {
 		$tools['import']       = __( 'Import', 'ad-commander-tools' );
 		$tools['export']       = __( 'Export', 'ad-commander-tools' );
 		$tools['delete_stats'] = __( 'Delete Ad Stats', 'ad-commander-tools' );
+		$tools['debug']        = __( 'Debug', 'ad-commander-tools' );
 
 		$admin_url = self::tools_admin_url();
 
@@ -249,6 +250,9 @@ class AdminTools extends Admin {
 
 				case 'adcmdr_delete_stats':
 					$this->delete_stats_page();
+					break;
+				case 'adcmdr_debug':
+					$this->debug_page();
 					break;
 			}
 		}
@@ -388,6 +392,80 @@ class AdminTools extends Admin {
 			$options,
 			array_filter( array_keys( $options ), fn( $option ) => $option !== 'stats' )
 		);
+	}
+
+	/**
+	 * Debug page
+	 */
+	private function debug_page() {
+		?>
+				<ul class="adcmdrdt-debug-list">
+					<li>
+						<?php
+						if ( ! class_exists( '\ZipArchive' ) || ! method_exists( '\ZipArchive', 'open' ) ) {
+							echo '<strong class="adcmdr-error-notice">' . esc_html__( 'PHP ZipArchive class does not exist. This is required to process the import bundle. Please check with your host to ensure this PHP extension is installed and enabled.', 'ad-commander-tools' ) . '</strong>';
+						} else {
+							esc_html_e( 'PHP ZipArchive class is available.', 'ad-commander-tools' );
+						}
+						?>
+					</li>
+					<li>
+						<?php
+						$filesystem = Filesystem::instance();
+						if ( ! $filesystem->init_wp_filesystem() ) {
+							echo '<strong class="adcmdr-error-notice">' . esc_html__( 'WP_Filesystem could not be initialized with the direct method. Please check your filesystem settings and permissions.', 'ad-commander-tools' ) . '</strong>';
+						} else {
+							esc_html_e( 'WP_Filesystem initialized successfully with the direct method.', 'ad-commander-tools' );
+						}
+						?>
+					</li>
+					<li>
+						<?php
+						$tmp_dir = $filesystem->wp_tmp_dir( ImportBundle::import_dir() );
+						if ( ! $tmp_dir ) {
+							echo '<strong class="adcmdr-error-notice">' . esc_html__( 'Could not find a writable temporary directory for processing the import bundle. Please check your filesystem settings and permissions.', 'ad-commander-tools' ) . '</strong>';
+						} else {
+							esc_html_e( 'Found writable temporary directory for processing the import bundle: ', 'ad-commander-tools' );
+							echo '<code>' . esc_html( $tmp_dir ) . '</code>';
+						}
+						?>
+					</li>
+					<li>
+						<?php
+						$extract_to_dir = $filesystem->maybe_create_dir( trailingslashit( $tmp_dir ) . 'adcmdr_import_test' );
+						if ( ! $extract_to_dir ) {
+							echo '<strong class="adcmdr-error-notice">' . esc_html__( 'Could not create a writable directory for extracting the import bundle. Please check your filesystem settings and permissions.', 'ad-commander-tools' ) . '</strong>';
+						} else {
+							esc_html_e( 'Created writable directory for extracting the import bundle: ', 'ad-commander-tools' );
+							echo '<code>' . esc_html( $extract_to_dir ) . '</code>';
+							global $wp_filesystem;
+							$dir_info = array(
+								'chmod' => $wp_filesystem->getchmod( $extract_to_dir ),
+								'owner' => $wp_filesystem->owner( $extract_to_dir ),
+								'group' => $wp_filesystem->group( $extract_to_dir ),
+							);
+							echo '<pre>';
+							print_r( $dir_info );
+							echo '</pre>';
+						}
+						?>
+					</li>
+					<li>
+						<?php
+						global $wp_filesystem;
+						$filelist = $wp_filesystem->dirlist( $extract_to_dir, false );
+						if ( ! $filelist || ! is_array( $filelist ) || empty( $filelist ) ) {
+							echo '<strong class="adcmdr-error-notice">' . esc_html__( 'Could not read the directory for extracting the import bundle. Please check your filesystem settings and permissions.', 'ad-commander-tools' ) . '</strong>';
+						} else {
+							esc_html_e( 'Successfully read the directory for extracting the import bundle.', 'ad-commander-tools' );
+							echo '<pre>';
+							print_r( $filelist );
+							echo '</pre>';
+						}
+						?>
+					</li>
+				</ul>
+				<?php
 	}
 
 	/**

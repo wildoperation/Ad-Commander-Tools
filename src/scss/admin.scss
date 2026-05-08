@@ -156,3 +156,26 @@ $danger: #a4303f;
 		color: $wp-red;
 	}
 }
+
+.adcmdrdt-debug-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+
+	li {
+		margin: 0 0 $gutter-width-half;
+		padding: 0 0 $gutter-width-half;
+		list-style: none;
+		border-bottom: 1px solid lighten($wp-border-color, 10%);
+	}
+
+	& > li:last-child {
+		border-bottom: none;
+		margin-bottom: 0;
+		padding-bottom: 0;
+	}
+
+	.adcmdr-error-notice {
+		color: $wp-red;
+	}
+}

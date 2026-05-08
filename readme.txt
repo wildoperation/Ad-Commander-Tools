@@ -3,7 +3,7 @@ Contributors: wildoperation, timstl
 Tags: advertising, banners, rotate, adsense, amp
 Requires at least: 6.2
 Tested up to: 6.9
-Stable tag: 1.1.2
+Stable tag: 1.1.3
 Requires PHP: 7.4
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -25,6 +25,9 @@ With Ad Commander Tools you can export your ads, groups, placements, and stats i
 * Reset all impressions and clicks for all ads
 
 == Changelog ==
+= 1.1.3 =
+* Adds debug tab to assist with troubleshooting
+
 = 1.1.2 =
 * Fix potential import issue when tmp directory is not writeable and disk space is low.
 * Misc minor improvements
