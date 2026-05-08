@@ -120,7 +120,7 @@ class Filesystem {
 		if ( wp_is_writable( $tmp ) ) {
 			$free_space = @disk_free_space( $tmp );
 
-			if ( ! $free_space || ( $free_space / MB_IN_BYTES ) >= 200 ) {
+			if ( $free_space && ( $free_space / MB_IN_BYTES ) >= 200 ) {
 				return $tmp;
 			}
 		}
