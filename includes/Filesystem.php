@@ -115,9 +115,10 @@ class Filesystem {
 	 * @return bool|string
 	 */
 	public function wp_tmp_dir( $fallback_dir ) {
+		global $wp_filesystem;
 		$tmp = get_temp_dir();
 
-		if ( wp_is_writable( $tmp ) ) {
+		if ( wp_is_writable( $tmp ) && $wp_filesystem->is_readable( $tmp ) ) {
 			$free_space = @disk_free_space( $tmp );
 
 			if ( $free_space && ( $free_space / MB_IN_BYTES ) >= 200 ) {
@@ -128,7 +129,7 @@ class Filesystem {
 
 		$tmp = $this->maybe_create_dir( trailingslashit( $fallback_dir ) );
 
-		if ( $tmp && @is_dir( $tmp ) && wp_is_writable( $tmp ) ) {
+		if ( $tmp && @is_dir( $tmp ) && wp_is_writable( $tmp ) && $wp_filesystem->is_readable( $tmp ) ) {
 			wo_log( '[ADCMDR] Using fallback tmp dir: ' . $tmp );
 			return $tmp;
 		}
