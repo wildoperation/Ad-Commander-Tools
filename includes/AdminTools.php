@@ -402,6 +402,19 @@ class AdminTools extends Admin {
 				<ul class="adcmdrdt-debug-list">
 					<li>
 						<?php
+						$max_execution_time = UtilTools::maybe_increase_max_execution_time();
+
+						if ( ! $max_execution_time ) {
+							echo '<strong class="adcmdr-error-notice">' . esc_html__( 'Could not determine the max execution time for PHP scripts on this server. This may affect the processing of large import bundles.', 'ad-commander-tools' ) . '</strong>';
+						} elseif ( $max_execution_time !== 0 && $max_execution_time < (int) apply_filters( 'adcmdr_tools_set_time_limit', 480 ) ) {
+							echo '<strong class="adcmdr-error-notice">' . esc_html__( 'The max execution time for PHP scripts on this server is currently set to ', 'ad-commander-tools' ) . esc_html( $max_execution_time ) . esc_html__( ' seconds, which may not be sufficient to process large import bundles. We recommend increasing this limit to at least 300 seconds (5 minutes) to ensure imports can complete successfully. Please check with your host to increase the max execution time.', 'ad-commander-tools' ) . '</strong>';
+						} else {
+							echo esc_html__( 'The max execution time for PHP scripts on this server is ', 'ad-commander-tools' ) . esc_html( $max_execution_time ) . esc_html__( ' seconds.', 'ad-commander-tools' );
+						}
+						?>
+					</li>
+					<li>
+						<?php
 						if ( ! class_exists( '\ZipArchive' ) || ! method_exists( '\ZipArchive', 'open' ) ) {
 							echo '<strong class="adcmdr-error-notice">' . esc_html__( 'PHP ZipArchive class does not exist. This is required to process the import bundle. Please check with your host to ensure this PHP extension is installed and enabled.', 'ad-commander-tools' ) . '</strong>';
 						} else {

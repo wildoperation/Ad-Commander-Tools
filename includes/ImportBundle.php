@@ -81,6 +81,7 @@ class ImportBundle extends Import {
 	 * @return void|bool
 	 */
 	public function do_import_bundle() {
+		$max_execution_time = UtilTools::maybe_increase_max_execution_time();
 
 		/**
 		 * Make sure we have everything to proceed.

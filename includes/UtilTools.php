@@ -172,4 +172,25 @@ class UtilTools {
 	public static function needs_adcmdr_upgrade() {
 		return version_compare( AdCommanderTools::required_adcmdr_version(), AdCommander::version(), '>' );
 	}
+
+	/**
+	 * Increase max execution time.
+	 */
+	public static function maybe_increase_max_execution_time() {
+		if ( ! function_exists( 'set_time_limit' ) || ! function_exists( 'ini_get' ) ) {
+			return false;
+		}
+
+		$time_limit         = (int) apply_filters( 'adcmdr_tools_set_time_limit', 480 );
+		$max_execution_time = (int) ini_get( 'max_execution_time' );
+
+		// 0 = unlimited — no need to increase.
+		if ( $max_execution_time === 0 || $max_execution_time >= $time_limit ) {
+			return $max_execution_time;
+		}
+
+		@set_time_limit( $time_limit );
+
+		return (int) ini_get( 'max_execution_time' );
+	}
 }
