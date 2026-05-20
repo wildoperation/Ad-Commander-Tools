@@ -2,8 +2,8 @@
 Contributors: wildoperation, timstl
 Tags: advertising, banners, rotate, adsense, amp
 Requires at least: 6.2
-Tested up to: 6.9
-Stable tag: 1.1.4
+Tested up to: 7.0
+Stable tag: 1.1.5
 Requires PHP: 7.4
 License: GPLv3
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
@@ -25,6 +25,9 @@ With Ad Commander Tools you can export your ads, groups, placements, and stats i
 * Reset all impressions and clicks for all ads
 
 == Changelog ==
+= 1.1.5 =
+* WordPress 7.0 support
+
 = 1.1.4 =
 * Check if tmp directory is both readable and writeable.
 * Attempt to automatically increase PHP max execution time when needed.

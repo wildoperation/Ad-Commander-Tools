@@ -2,8 +2,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Ad Commander Tools\n"
-"POT-Creation-Date: 2026-05-07 13:03-0500\n"
-"PO-Revision-Date: 2026-05-07 13:02-0500\n"
+"POT-Creation-Date: 2026-05-20 07:05-0500\n"
+"PO-Revision-Date: 2026-05-20 07:05-0500\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -19,7 +19,8 @@ msgstr ""
 "__;_e;_n:1,2;_x:1,2c;_ex:1,2c;_nx:4c,1,2;esc_attr__;esc_attr_e;esc_attr_x:1,2c;esc_html__;esc_html_e;esc_html_x:1,2c;_n_noop:1,2;_nx_noop:3c,1,2;__ngettext_noop:1,2\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPathExcluded-0: *.min.js\n"
-"X-Poedit-SearchPathExcluded-1: vendor\n"
+"X-Poedit-SearchPathExcluded-1: node_modules\n"
+"X-Poedit-SearchPathExcluded-2: vendor\n"
 
 #. translators: %1$s: anchor tag with URL, %2$s: close anchor tag
 #: ad-commander-tools.php:52 ad-commander-tools.php:68
@@ -41,11 +42,11 @@ msgstr ""
 msgid "Tools"
 msgstr ""
 
-#: includes/AdminTools.php:217 includes/AdminTools.php:400
+#: includes/AdminTools.php:217 includes/AdminTools.php:491
 msgid "Import"
 msgstr ""
 
-#: includes/AdminTools.php:218 includes/AdminTools.php:293
+#: includes/AdminTools.php:218 includes/AdminTools.php:297
 msgid "Export"
 msgstr ""
 
@@ -53,31 +54,35 @@ msgstr ""
 msgid "Delete Ad Stats"
 msgstr ""
 
-#: includes/AdminTools.php:296
+#: includes/AdminTools.php:220
+msgid "Debug"
+msgstr ""
+
+#: includes/AdminTools.php:300
 msgid ""
 "Your host doesn't appear to support the necessary libraries for exporting "
 "and compressing your data. We are unable to create export bundles at this "
 "time."
 msgstr ""
 
-#: includes/AdminTools.php:307
+#: includes/AdminTools.php:311
 msgid "Include stats"
 msgstr ""
 
-#: includes/AdminTools.php:312
+#: includes/AdminTools.php:316
 msgid "Include statistics in export bundle."
 msgstr ""
 
-#: includes/AdminTools.php:317
+#: includes/AdminTools.php:321
 msgid "Export bundle"
 msgstr ""
 
-#: includes/AdminTools.php:319
+#: includes/AdminTools.php:323
 msgid "Create export bundle now"
 msgstr ""
 
 #. translators: %1$s: line break tag
-#: includes/AdminTools.php:322
+#: includes/AdminTools.php:326
 #, php-format
 msgid ""
 "A bundle will be created with your ads, groups, placements, and (optionally) "
@@ -85,91 +90,169 @@ msgid ""
 "data to import."
 msgstr ""
 
-#: includes/AdminTools.php:332
+#: includes/AdminTools.php:336
 msgid "Exported files"
 msgstr ""
 
-#: includes/AdminTools.php:349
+#: includes/AdminTools.php:353
 msgid "Download"
 msgstr ""
 
-#: includes/AdminTools.php:376
+#: includes/AdminTools.php:380
 msgid "Ads"
 msgstr ""
 
-#: includes/AdminTools.php:377
+#: includes/AdminTools.php:381
 msgid "Groups"
 msgstr ""
 
-#: includes/AdminTools.php:378
+#: includes/AdminTools.php:382
 msgid "Campaigns"
 msgstr ""
 
-#: includes/AdminTools.php:379
+#: includes/AdminTools.php:383
 msgid "Advertisers"
 msgstr ""
 
-#: includes/AdminTools.php:380
+#: includes/AdminTools.php:384
 msgid "Inserts"
 msgstr ""
 
-#: includes/AdminTools.php:381
+#: includes/AdminTools.php:385
 msgid "Stats"
 msgstr ""
 
-#: includes/AdminTools.php:385
+#: includes/AdminTools.php:389
 msgid "Import the following data (if present in the bundle file):"
 msgstr ""
 
-#: includes/AdminTools.php:406
+#: includes/AdminTools.php:408
+msgid ""
+"Could not determine the max execution time for PHP scripts on this server. "
+"This may affect the processing of large import bundles."
+msgstr ""
+
+#: includes/AdminTools.php:410
+msgid ""
+"The max execution time for PHP scripts on this server is currently set to "
+msgstr ""
+
+#: includes/AdminTools.php:410
+msgid ""
+" seconds, which may not be sufficient to process large import bundles. We "
+"recommend increasing this limit to at least 300 seconds (5 minutes) to "
+"ensure imports can complete successfully. Please check with your host to "
+"increase the max execution time."
+msgstr ""
+
+#: includes/AdminTools.php:412
+msgid "The max execution time for PHP scripts on this server is "
+msgstr ""
+
+#: includes/AdminTools.php:412
+msgid " seconds."
+msgstr ""
+
+#: includes/AdminTools.php:419
+msgid ""
+"PHP ZipArchive class does not exist. This is required to process the import "
+"bundle. Please check with your host to ensure this PHP extension is "
+"installed and enabled."
+msgstr ""
+
+#: includes/AdminTools.php:421
+msgid "PHP ZipArchive class is available."
+msgstr ""
+
+#: includes/AdminTools.php:429
+msgid ""
+"WP_Filesystem could not be initialized with the direct method. Please check "
+"your filesystem settings and permissions."
+msgstr ""
+
+#: includes/AdminTools.php:431
+msgid "WP_Filesystem initialized successfully with the direct method."
+msgstr ""
+
+#: includes/AdminTools.php:439
+msgid ""
+"Could not find a writable temporary directory for processing the import "
+"bundle. Please check your filesystem settings and permissions."
+msgstr ""
+
+#: includes/AdminTools.php:441
+msgid "Found writable temporary directory for processing the import bundle: "
+msgstr ""
+
+#: includes/AdminTools.php:450
+msgid ""
+"Could not create a writable directory for extracting the import bundle. "
+"Please check your filesystem settings and permissions."
+msgstr ""
+
+#: includes/AdminTools.php:452
+msgid "Created writable directory for extracting the import bundle: "
+msgstr ""
+
+#: includes/AdminTools.php:471
+msgid ""
+"Could not read the directory for extracting the import bundle. Please check "
+"your filesystem settings and permissions."
+msgstr ""
+
+#: includes/AdminTools.php:473
+msgid "Successfully read the directory for extracting the import bundle."
+msgstr ""
+
+#: includes/AdminTools.php:497
 msgid ""
 "Your user does not have permission to use unfiltered HTML. Scripts and some "
 "other HTML will be stripped from Text/Code ads, Rich Content ads, and custom "
 "code."
 msgstr ""
 
-#: includes/AdminTools.php:422
+#: includes/AdminTools.php:513
 msgid "Import bundle"
 msgstr ""
 
-#: includes/AdminTools.php:424
+#: includes/AdminTools.php:515
 msgid ""
 "Upload a bundle zip created by Ad Commander's export tool. This zip will be "
 "processed and imported based on the options selected below."
 msgstr ""
 
-#: includes/AdminTools.php:429
+#: includes/AdminTools.php:520
 msgid "Select a bundle file to upload."
 msgstr ""
 
-#: includes/AdminTools.php:438
+#: includes/AdminTools.php:529
 msgid "Draft"
 msgstr ""
 
-#: includes/AdminTools.php:439
+#: includes/AdminTools.php:530
 msgid "Match imported status and post date"
 msgstr ""
 
-#: includes/AdminTools.php:443
+#: includes/AdminTools.php:534
 msgid "Set the status of imported Ads and Placements to:"
 msgstr ""
 
-#: includes/AdminTools.php:452
+#: includes/AdminTools.php:543
 msgid "Upload & Import Bundle"
 msgstr ""
 
-#: includes/AdminTools.php:478
+#: includes/AdminTools.php:569
 msgid ""
 "Warning: These are destructive actions. Please backup your database before "
 "proceeding."
 msgstr ""
 
-#: includes/AdminTools.php:480
+#: includes/AdminTools.php:571
 msgid "Delete ad stats"
 msgstr ""
 
 #. translators: %1$s: open strong and em tags; %2$s: close strong and em tags
-#: includes/AdminTools.php:483
+#: includes/AdminTools.php:574
 #, php-format
 msgid ""
 "Use this tool to delete stats for a specific ad ID.%1$sTo find the ID for an "
@@ -179,35 +262,35 @@ msgid ""
 "\"Ad Not Found (ID: #)\"."
 msgstr ""
 
-#: includes/AdminTools.php:494
+#: includes/AdminTools.php:585
 msgid "Ad ID"
 msgstr ""
 
-#: includes/AdminTools.php:499
+#: includes/AdminTools.php:590
 msgid "Enter the ad ID to delete."
 msgstr ""
 
-#: includes/AdminTools.php:503 includes/AdminTools.php:547
-#: includes/AdminTools.php:599
+#: includes/AdminTools.php:594 includes/AdminTools.php:638
+#: includes/AdminTools.php:690
 msgid "Confirm delete"
 msgstr ""
 
-#: includes/AdminTools.php:508
+#: includes/AdminTools.php:599
 msgid ""
 "I understand I am deleting statistics for an ad. This action cannot be "
 "undone."
 msgstr ""
 
-#: includes/AdminTools.php:511
+#: includes/AdminTools.php:602
 msgid "Delete ad statistics"
 msgstr ""
 
-#: includes/AdminTools.php:527
+#: includes/AdminTools.php:618
 msgid "Delete rogue stats"
 msgstr ""
 
 #. translators: %1$s: open strong and em tags; %2$s: close strong and em tags
-#: includes/AdminTools.php:530
+#: includes/AdminTools.php:621
 #, php-format
 msgid ""
 "A stat is considered rogue if an ad no longer exists. Stats for ads in the "
@@ -215,32 +298,32 @@ msgid ""
 msgstr ""
 
 #. translators: %1$s the total number of query results
-#: includes/AdminTools.php:536
+#: includes/AdminTools.php:627
 #, php-format
 msgid "You currently have %1$s rogue stat entries."
 msgstr ""
 
-#: includes/AdminTools.php:565
+#: includes/AdminTools.php:656
 msgid ""
 "I understand I am deleting statistics for ads that no longer exist. These "
 "stats will no longer be included in Reports. This action cannot be undone."
 msgstr ""
 
-#: includes/AdminTools.php:568
+#: includes/AdminTools.php:659
 msgid "Delete rogue statistics"
 msgstr ""
 
-#: includes/AdminTools.php:588
+#: includes/AdminTools.php:679
 msgid "Reset all stats"
 msgstr ""
 
-#: includes/AdminTools.php:604
+#: includes/AdminTools.php:695
 msgid ""
 "I understand I am deleting statistics for all ads and that this action "
 "cannot be undone."
 msgstr ""
 
-#: includes/AdminTools.php:607
+#: includes/AdminTools.php:698
 msgid "Reset all statistics"
 msgstr ""
 
