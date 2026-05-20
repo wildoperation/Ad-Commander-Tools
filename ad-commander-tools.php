@@ -128,7 +128,7 @@ add_action(
 		 * Initiate classes and their hooks.
 		 */
 		$classes = array(
-			'ADCmdr\LocalizeTools',
+			// 'ADCmdr\LocalizeTools',
 			'ADCmdr\AdminTools',
 			'ADCmdr\Export',
 			'ADCmdr\ImportBundle',
